@@ -25,7 +25,6 @@ if __name__ == '__main__':
     
     ##movement probabilities, movementChance[i][j][h] is fractional probability for 1 person to move from place i to place j in hour h. ##CURRENTLY each hour (and location) is identical
     movementChances = numpy.zeros((numPlaces,numPlaces,24)) + 0.0001
-    print(movementChances[1][1][:])
     
     
     
@@ -67,7 +66,15 @@ if __name__ == '__main__':
             
             ##population transfer changes
             ##movementChanges[i][j] is people of type j moving from this area to area i. index 0 = S pop, 1 = I pop, 2 = R pop
-            movementChanges = rungeKuttaMove()
+            movementChanges = rungeKuttaMove(I[i], S[i], R[i], movementChances[i])
+            
+            for k in range(0, numPlaces):
+                S[i] = S[i] - movementChanges[k][0]
+                S[k] = S[k] + movementChanges[k][0]
+                I[i] = I[i] - movementChanges[k][1]
+                I[k] = I[k] + movementChanges[k][1]
+                R[i] = R[i] - movementChanges[k][2]
+                R[k] = R[k] + movementChanges[k][2]
     
     
     
