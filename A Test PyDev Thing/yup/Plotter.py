@@ -1,7 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy
 
-def plotThis22 (ts, yS, yI, yR, areaname):
+def plotThis22 (yS, yI, yR, areaname):
+    ts = numpy.zeros(yS.shape()[0])
+    for i in range(0, ts.shape()[0] - 1):
+        ts[i+1] = ts[i] + 1
+    
     plt.plot(ts, yS, 'b-', label='S Pop')
     plt.plot(ts, yI, 'ot', label='I Pop')
     plt.plot(ts, yR, 'rs', label='R Pop')

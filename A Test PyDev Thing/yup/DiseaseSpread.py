@@ -26,7 +26,12 @@ if __name__ == '__main__':
     
     infectionProbPerContact = 0.05 ##probability to infect person per human-human contact
     recovRate = 0.01 ## fraction of people per day
+    
+    ##not sure if using this one
     humanContactsPerHour = numpy.zeros((numPlaces, 24)) + 0.5 ##average contact one person has each hour, for each place and each hour ##CURRENTLY each hour is identical
+    
+    
+    
     
     #initially infected
     infectedFrac = numpy.zeros(2)
@@ -43,8 +48,7 @@ if __name__ == '__main__':
     I = numpy.zeros((runLength,numPlaces)) ## infected
     R = numpy.zeros((runLength,numPlaces)) ##recovered
     
-    changes = numpy.zeros(2) ##for the iteration, biological changes
-    movementChanges = numpy.zeros((numPlaces,3)) ##for the iteration, movement changes
+    changes = numpy.zeros((numPlaces, 3)) ##for the iteration, [][0] is S pop, [][1] is I pop, [][2] is R pop
 
     
     for i in range(0,numPlaces):
@@ -52,58 +56,37 @@ if __name__ == '__main__':
         R[0][i] = 0
         S[0][i] = placePop[i] - I[i]
         
-        
-    Stemp = S[0] ##susceptible, temp for iteration
-    Itemp = I[0] ##infected, temp for iteration
-    Rtemp = R[0] ##recovered/immune, temp for iteration
-    
+
     ###Iterate
     ##settings
-    timeStep = 1.0 ##units of hours
+    timeStep = 6 #timestep is this many per hour
     
+    vaccinationsPerHour = numpy.int(500/24) ##assuming 500 per day now
     
-    
-
     ##settings end
     
     ###Iterates for set amount of totalTime
     for hour in range(0, runLength):##iteration of 1 hour, calls for changes in each population due to biological factors, then moves people around
         
-        Stemp = S[hour] ##susceptible, temp for iteration
-        Itemp = I[hour] ##infected, temp for iteration
-        Rtemp = R[hour] ##recovered/immune, temp for iteration
+
+        ##get population changes
+        changes = rungeKuttaChange(I[hour], S[hour], R[hour], timeStep, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
+        ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
+        ##changes index 0 = recovered population, 1 = newly infected
         
-        for i in range(0, numPlaces):##per population, this happens
-            ##get biological population changes
-            changes = rungeKuttaInfect(Itemp[i], Stemp[i], Rtemp[i], humanContactsPerHour[i] * infectionProbPerContact, recovRate/24) 
-            ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
-            ##changes index 0 = recovered population, 1 = newly infected
-            Itemp[i] = Itemp[i] + changes[1] - changes [0]
-            Rtemp[i] = Rtemp[i] + changes[0]
-            Stemp[i] = Stemp[i] - changes[1]
-            
-            ##population transfer changes
-            ##movementChanges[i][j] is people of type j moving from this area (i) to area k. index 0 = S pop, 1 = I pop, 2 = R pop
-            movementChanges = rungeKuttaMove(I[i], S[i], R[i], movementChances[i])
-            
-            for k in range(0, numPlaces): ##k being the population gaining people from i
-                Stemp[i] = Stemp[i] - movementChanges[k][0]
-                Stemp[k] = Stemp[k] + movementChanges[k][0]
-                
-                Itemp[i] = Itemp[i] - movementChanges[k][1]
-                Itemp[k] = Itemp[k] + movementChanges[k][1]
-                
-                Rtemp[i] = Rtemp[i] - movementChanges[k][2]
-                Rtemp[k] = Rtemp[k] + movementChanges[k][2]
-    
-            I[hour+1][i] = Itemp[i]
-            S[hour+1][i] = Stemp[i]
-            R[hour+1][i] = Rtemp[i]
+        
+        for i in range(0, numPlaces):##per population, execute changes
+
+            I[hour+1][i] = I[hour][i] + changes[i][1]
+            S[hour+1][i] = S[hour][i] + changes[i][0]
+            R[hour+1][i] = R[hour][i] + changes[i][2]
     
 
     ##eventually add plotting here, I suppose
     
-    Plotter.plotThis22([1,2,3,4,5,6],[1,2,3,4,5,6], [1,2,3,4,5,6], [1,2,3,4,5,6], 1) ##times, S pop, I pop, R pop, index/name of location
+    plotIndex = 0
+    
+    Plotter.plotThis22(numpy.transpose(S)[plotIndex],numpy.transpose(I)[plotIndex], numpy.transpose(R)[plotIndex], plotIndex) ##S pop, I pop, R pop, index/name of location
     plt.show()
     
     print('done')
