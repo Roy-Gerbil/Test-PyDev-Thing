@@ -11,7 +11,13 @@ import matplotlib.pyplot as plt
 import Plotter
 
 if __name__ == '__main__':
-    #Variable Initialization: Populations
+    
+    ##First off, decide for how long to run the simulation (in units of hours)
+    
+    runLength = 24*30*6
+    
+
+    #Variable Initialization: Populations, lists (each index is [place]) of arrays
     
     numPlaces = 2
     placePop = numpy.zeros(numPlaces)
@@ -33,61 +39,71 @@ if __name__ == '__main__':
     
     
     ##The Numbers (in units of 1 person)
-    S = numpy.zeros(numPlaces) ##susceptible
-    I = numpy.zeros(numPlaces) ## infected
-    R = numpy.zeros(numPlaces) ##recovered
+    S = numpy.zeros((runLength,numPlaces)) ##susceptible
+    I = numpy.zeros((runLength,numPlaces)) ## infected
+    R = numpy.zeros((runLength,numPlaces)) ##recovered
     
     changes = numpy.zeros(2) ##for the iteration, biological changes
     movementChanges = numpy.zeros((numPlaces,3)) ##for the iteration, movement changes
 
     
     for i in range(0,numPlaces):
-        I[i] = placePop[i]*infectedFrac[i]
-        R[i] = 0
-        S[i] = placePop[i] - I[i]
+        I[0][i] = placePop[i]*infectedFrac[i]
+        R[0][i] = 0
+        S[0][i] = placePop[i] - I[i]
         
         
+    Stemp = S[0] ##susceptible, temp for iteration
+    Itemp = I[0] ##infected, temp for iteration
+    Rtemp = R[0] ##recovered/immune, temp for iteration
+    
     ###Iterate
     ##settings
     timeStep = 1.0 ##units of hours
     
     
     
-    
-    totalTime = 60*24 ##in hours
+
     ##settings end
     
     ###Iterates for set amount of totalTime
-    for hour in range(0, totalTime):##iteration of 1 hour, calls for changes in each population due to biological factors, then moves people around
+    for hour in range(0, runLength):##iteration of 1 hour, calls for changes in each population due to biological factors, then moves people around
+        
+        Stemp = S[hour] ##susceptible, temp for iteration
+        Itemp = I[hour] ##infected, temp for iteration
+        Rtemp = R[hour] ##recovered/immune, temp for iteration
+        
         for i in range(0, numPlaces):##per population, this happens
             ##get biological population changes
-            changes = rungeKuttaInfect(I[i], S[i], R[i], humanContactsPerHour[i] * infectionProbPerContact, recovRate/24) 
+            changes = rungeKuttaInfect(Itemp[i], Stemp[i], Rtemp[i], humanContactsPerHour[i] * infectionProbPerContact, recovRate/24) 
             ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
             ##changes index 0 = recovered population, 1 = newly infected
-            I[i] = I[i] + changes[1] - changes [0]
-            R[i] = R[i] + changes[0]
-            S[i] = S[i] - changes[1]
+            Itemp[i] = Itemp[i] + changes[1] - changes [0]
+            Rtemp[i] = Rtemp[i] + changes[0]
+            Stemp[i] = Stemp[i] - changes[1]
             
             ##population transfer changes
             ##movementChanges[i][j] is people of type j moving from this area (i) to area k. index 0 = S pop, 1 = I pop, 2 = R pop
             movementChanges = rungeKuttaMove(I[i], S[i], R[i], movementChances[i])
             
             for k in range(0, numPlaces): ##k being the population gaining people from i
-                S[i] = S[i] - movementChanges[k][0]
-                S[k] = S[k] + movementChanges[k][0]
+                Stemp[i] = Stemp[i] - movementChanges[k][0]
+                Stemp[k] = Stemp[k] + movementChanges[k][0]
                 
-                I[i] = I[i] - movementChanges[k][1]
-                I[k] = I[k] + movementChanges[k][1]
+                Itemp[i] = Itemp[i] - movementChanges[k][1]
+                Itemp[k] = Itemp[k] + movementChanges[k][1]
                 
-                R[i] = R[i] - movementChanges[k][2]
-                R[k] = R[k] + movementChanges[k][2]
+                Rtemp[i] = Rtemp[i] - movementChanges[k][2]
+                Rtemp[k] = Rtemp[k] + movementChanges[k][2]
     
-    
+            I[hour+1][i] = Itemp[i]
+            S[hour+1][i] = Stemp[i]
+            R[hour+1][i] = Rtemp[i]
     
 
     ##eventually add plotting here, I suppose
     
-    Plotter.plotThis22((numpy.zeros(10) + 1),(numpy.zeros(10) - 1))
+    Plotter.plotThis22((numpy.zeros(10) + 1),(numpy.zeros(10) - 1)) ##times, S pop, I pop, R pop
     plt.show()
     
     print('done')
