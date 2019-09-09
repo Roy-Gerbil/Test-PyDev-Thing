@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     ###Iterate
     ##settings
-    timeStep = 6 #timestep is this many per hour
+    timeStep = 1/9 #timestep in units of hours
     
     vaccinationsPerHour = numpy.int(500/24) ##assuming 500 per day now
     
@@ -82,6 +82,10 @@ if __name__ == '__main__':
             R[hour+1][i] = R[hour][i] + changes[i][2]
     
 
+    
+    ##error estimates, using formula for stepsize of 2h, where y is the value with stepsize of h and u is with stepsize 2h:
+    ##  E_n = (y_n - u_n) / (2^m -1), m = h for R-K 4th order method so E_n = (y_n - u_n) / 31
+    
     ##plotting here
     
     plotIndex = 0
