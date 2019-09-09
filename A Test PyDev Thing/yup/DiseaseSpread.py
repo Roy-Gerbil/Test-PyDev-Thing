@@ -82,7 +82,7 @@ if __name__ == '__main__':
             R[hour+1][i] = R[hour][i] + changes[i][2]
     
 
-    ##eventually add plotting here, I suppose
+    ##plotting here
     
     plotIndex = 0
     
