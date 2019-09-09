@@ -1,0 +1,32 @@
+import numpy as np
+from  scipy import *
+from  pylab import *
+import matplotlib.pyplot as plt
+import csv
+import codecs
+Cities =[[" Malmö",316,588], [ "Lund", 91,940],  ["Copenhagen", 602,481]
+#Pop
+#CityM = [[N11,N12,N13],[N21,N22,N23], [N31,N32,N33]]
+
+    
+N12 = 2000
+N21 = 4000
+N13= 2500
+N31 = 4200
+S2= 0.2 * 602481
+S3 = 0.2 * 91940
+T= 20 * 24
+T0 = 0 
+def Susceptible(N,S,I,R,h,B,A,G): 
+    
+    F1 = h * (- (B * S * I/N) - G*S + ((N12*S2 + N13*S3) - (N21*S + N31*S)))  # How to generalize this? Sum of that shit" 
+    F2 = h * ((- (B * (S+F1/2) * I/N) - G*(S+F1/2) + ((N12*S2 + N13*S3) - (N21+N31)*(S+F1/2))))
+    F3 = h * ((- (B * (S+F2/2) * I/N) - G*(S+F2/2) + ((N12*S2 + N13*S3) - (N21+N31)*((S+F1/2)))))
+    F4 = h * ((- (B * (S+F3) * I/N) - G*(S+F3) + ((N12*S2 + N13*S3) - (N21+N31)*(S+F3))))
+    A= []
+    t= [0]
+    Y = [S]
+    for i in range(480):
+        Y.append(Y[i] + 1/6 *(F1 + F2 + F3 + F4))
+        t.append( t[i] +h)
+    plot(t,Y)
