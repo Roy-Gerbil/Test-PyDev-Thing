@@ -8,7 +8,7 @@ Last edited on Sep. 5, 2019
 import math
 import numpy
 import matplotlib.pyplot as plt
-from Plotter import plotThis22
+import Plotter
 
 if __name__ == '__main__':
     #Variable Initialization: Populations
@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     ##eventually add plotting here, I suppose
     
-    plotThis22((numpy.zeros(10) + 1),(numpy.zeros(10) - 1))
+    Plotter.plotThis22((numpy.zeros(10) + 1),(numpy.zeros(10) - 1))
     plt.show()
     
     print('done')
