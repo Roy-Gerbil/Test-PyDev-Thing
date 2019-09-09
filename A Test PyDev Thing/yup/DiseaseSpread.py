@@ -7,9 +7,12 @@ Last edited on Sep. 5, 2019
 
 import math
 import numpy
+import matplotlib.pyplot as plt
+from Plotter import plotThis22
 
 if __name__ == '__main__':
     #Variable Initialization: Populations
+    
     numPlaces = 2
     placePop = numpy.zeros(numPlaces)
     placePop[0] = 5000
@@ -66,14 +69,16 @@ if __name__ == '__main__':
             S[i] = S[i] - changes[1]
             
             ##population transfer changes
-            ##movementChanges[i][j] is people of type j moving from this area to area i. index 0 = S pop, 1 = I pop, 2 = R pop
+            ##movementChanges[i][j] is people of type j moving from this area (i) to area k. index 0 = S pop, 1 = I pop, 2 = R pop
             movementChanges = rungeKuttaMove(I[i], S[i], R[i], movementChances[i])
             
-            for k in range(0, numPlaces):
+            for k in range(0, numPlaces): ##k being the population gaining people from i
                 S[i] = S[i] - movementChanges[k][0]
                 S[k] = S[k] + movementChanges[k][0]
+                
                 I[i] = I[i] - movementChanges[k][1]
                 I[k] = I[k] + movementChanges[k][1]
+                
                 R[i] = R[i] - movementChanges[k][2]
                 R[k] = R[k] + movementChanges[k][2]
     
@@ -82,7 +87,8 @@ if __name__ == '__main__':
 
     ##eventually add plotting here, I suppose
     
-    
+    plotThis22((numpy.zeros(10) + 1),(numpy.zeros(10) - 1))
+    plt.show()
     
     print('done')
     #ended
