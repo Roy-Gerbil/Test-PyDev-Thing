@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     ##eventually add plotting here, I suppose
     
-    Plotter.plotThis22((numpy.zeros(10) + 1),(numpy.zeros(10) - 1)) ##times, S pop, I pop, R pop
+    Plotter.plotThis22([1,2,3,4,5,6],[1,2,3,4,5,6], [1,2,3,4,5,6], [1,2,3,4,5,6], 1) ##times, S pop, I pop, R pop, index/name of location
     plt.show()
     
     print('done')
