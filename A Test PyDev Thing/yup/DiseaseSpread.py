@@ -32,35 +32,36 @@ if __name__ == '__main__':
     vaccinationsPerHour = numpy.int(500/24) ##assuming 500 per day now
     ##settings end
     
-    #Variable Initialization: Populations, lists (each index is [place]) of arrays
+    #Variable Initialization: Populations and constants
     
-    numPlaces = 2
-    placePop = numpy.zeros(numPlaces)
-    placePop[0] = 5000
-    placePop[1] = 10000
+    places = [["Malmo", 316588, .02], [ "Lund", 91940, 0], ["Copenhagen", 602481, 0]] ##the places, each places has name, inital pop, initial infected fraction
+    
+    numPlaces = len(places)
+    
+    placePop = numpy.zeros(numPlaces) ##initial population for each place
+    infectedFrac = numpy.zeros(numPlaces) ##initially infected
+
+    for i in range(0, numPlaces):
+        placePop[i] = places[i][1]
+        infectedFrac[i] = places[i][2]
     
     infectionProbPerContact = 0.05 ##probability to infect person per human-human contact
     recovRate = 0.01 ## fraction of people per day
     
     ##not sure if using this one
     humanContactsPerHour = numpy.zeros((numPlaces, 24)) + 0.5 ##average contact one person has each hour, for each place and each hour ##CURRENTLY each hour is identical
+    ##should be omega in the paper
+
     
+    ##movement probabilities, movementChance[i][j][k] is fractional probability for 1 person of type i to move from place j to place k (( [0] is S, [1] is I, [2] is R ))
+    movementChances = numpy.zeros((3, numPlaces, numPlaces)) + 0.0001 ##hopefully a good starting chance, somewhat random movement
+    movementChances[1] = movementChances[1] / 5 ##1/5th chance for an infected person to move
     
-    
-    
-    #initially infected
-    infectedFrac = numpy.zeros(2)
-    infectedFrac[0] = 0.02
-    infectedFrac[1] = 0.0
-    
-    ##movement probabilities, movementChance[i][j][h] is fractional probability for 1 person to move from place i to place j in hour h. ##CURRENTLY each hour (and location) is identical
-    movementChances = numpy.zeros((numPlaces,numPlaces,24)) + 0.0001
     
     
     
     ##The Numbers (in units of 1 person)
     
-
     (S, I, R) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
 
     ###Iterate in the RungeKutta, the following is deprecated
@@ -86,7 +87,7 @@ if __name__ == '__main__':
 
     #new thing
     
-    (S, I, R) = rungeKuttaChange(S, I, R, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
+    (S, I, R) = rungeKuttaChange(S, I, R, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour, m)
     
 
     
@@ -99,7 +100,7 @@ if __name__ == '__main__':
     print('Regular Plot, timeStepsPerHour = '+timeStepsPerHour)
     plotIndex = 0
     
-    Plotter.plotThis22(S[plotIndex, I[plotIndex, R[plotIndex], 'h = 1h: The Spread of the Plague in Area ' +plotIndex)
+    Plotter.plotThis22(S[plotIndex], I[plotIndex], R[plotIndex], 'h = 1h: The Spread of the Plague in Area ' +plotIndex)
     plt.show()
     plt.clf()
     
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     
     (S2, I2, R2) = rungeKuttaChange(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
     
-    Plotter.plotThis22(S2[plotIndex, I2[plotIndex, R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +plotIndex)
+    Plotter.plotThis22(S2[plotIndex], I2[plotIndex], R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +plotIndex)
     plt.show()
     plt.clf()
     
@@ -127,7 +128,7 @@ if __name__ == '__main__':
     
     (S3, I3, R3) = rungeKuttaChange(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
     
-    Plotter.plotThis22(S3[plotIndex, I3[plotIndex, R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +plotIndex)
+    Plotter.plotThis22(S3[plotIndex], I3[plotIndex], R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +plotIndex)
     plt.show()
     plt.clf()
     
