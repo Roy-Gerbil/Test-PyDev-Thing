@@ -23,8 +23,8 @@ def valueGiver(S, I, R, timeStepsPerHour):
                 
                 Rtemp = Rtemp + 1/6(H1 + 2*H2 + 2*H3 + H4)
             
-            S[pl][h+1] = Stemp
-            I[pl][h+1] = Itemp
-            R[pl][h+1] = Rtemp
+            S[pl][h+1] = numpy.int(Stemp)
+            I[pl][h+1] = numpy.int(Itemp)
+            R[pl][h+1] = numpy.int(Rtemp)
             
     return (S, I, R)
