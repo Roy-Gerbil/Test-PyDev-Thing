@@ -23,7 +23,7 @@ def valueGiver(Sfull, Ifull, Rfull, timeStepsPerHour):
             
                 Stemp[pl] = Stemp[pl] + 1/6(F1 + 2*F2 + 2*F3 + F4)
                 Itemp[pl] = Itemp[pl] + 1/6(G1 + 2*G2 + 2*G3 + G4)
-                Rtemp[pl] = Rtemp[pl] + 1/6(H1 + 2*H2 + 2*H3 + H4)
+                Rtemp[pl] = Rtemp[pl] + 1/6(K1 + 2*K2 + 2*K3 + K4)
         
     for pl in range(0, numPlaces): ##The current temp values are stored in the history of the 'actual' values
         
