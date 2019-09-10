@@ -10,13 +10,28 @@ import numpy
 import matplotlib.pyplot as plt
 import Plotter
 
+
+def setInitialPops(runLength, numPlaces, placePop, infectedFrac): ###S[0][1] is S pop for location 0 at hour 1
+    S = numpy.zeros((numPlaces,runLength)) ##susceptible
+    I = numpy.zeros((numPlaces,runLength)) ## infected
+    R = numpy.zeros((numPlaces,runLength)) ##recovered
+    
+    for i in range(0,numPlaces):
+        I[i][0] = numpy.int(placePop[i]*infectedFrac[i])
+        R[i][0] = 0
+        S[i][0] = placePop[i] - I[i][0]
+
 if __name__ == '__main__':
     
-    ##First off, decide for how long to run the simulation (in units of hours)
+    ##settings
     
-    runLength = 24*30*6
+    runLength = 24*30*6 #units of hours, how long the simulation covers
     
-
+    timeStep = 1/9 #timestep in units of hours
+    
+    vaccinationsPerHour = numpy.int(500/24) ##assuming 500 per day now
+    ##settings end
+    
     #Variable Initialization: Populations, lists (each index is [place]) of arrays
     
     numPlaces = 2
@@ -44,54 +59,82 @@ if __name__ == '__main__':
     
     
     ##The Numbers (in units of 1 person)
-    S = numpy.zeros((runLength,numPlaces)) ##susceptible
-    I = numpy.zeros((runLength,numPlaces)) ## infected
-    R = numpy.zeros((runLength,numPlaces)) ##recovered
     
-    changes = numpy.zeros((numPlaces, 3)) ##for the iteration, [][0] is S pop, [][1] is I pop, [][2] is R pop
 
-    
-    for i in range(0,numPlaces):
-        I[0][i] = placePop[i]*infectedFrac[i]
-        R[0][i] = 0
-        S[0][i] = placePop[i] - I[i]
-        
+    (S, I, R) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
 
-    ###Iterate
-    ##settings
-    timeStep = 1/9 #timestep in units of hours
-    
-    vaccinationsPerHour = numpy.int(500/24) ##assuming 500 per day now
-    
-    ##settings end
-    
-    ###Iterates for set amount of totalTime
-    for hour in range(0, runLength):##iteration of 1 hour, calls for changes in each population due to biological factors, then moves people around
-        
+    ###Iterate in the RungeKutta, the following is deprecated
 
-        ##get population changes
-        changes = rungeKuttaChange(I[hour], S[hour], R[hour], timeStep, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
-        ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
-        ##changes index 0 = recovered population, 1 = newly infected
-        
-        
-        for i in range(0, numPlaces):##per population, execute changes
+    #changes = numpy.zeros((numPlaces, 3)) ##for the iteration, [][0] is S pop, [][1] is I pop, [][2] is R pop
+#===============================================================================
+#     ###Iterates for set amount of totalTime
+#     for hour in range(0, runLength):##iteration of 1 hour, calls for changes in each population due to biological factors, then moves people around
+#         
+# 
+#         ##get population changes
+#         changes = rungeKuttaChange(I[hour], S[hour], R[hour], timeStep, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
+#         ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
+#         ##changes index 0 = recovered population, 1 = newly infected
+#         
+#         
+#         for i in range(0, numPlaces):##per population, execute changes
+# 
+#             I[hour+1][i] = I[hour][i] + changes[i][1]
+#             S[hour+1][i] = S[hour][i] + changes[i][0]
+#             R[hour+1][i] = R[hour][i] + changes[i][2]
+#===============================================================================
 
-            I[hour+1][i] = I[hour][i] + changes[i][1]
-            S[hour+1][i] = S[hour][i] + changes[i][0]
-            R[hour+1][i] = R[hour][i] + changes[i][2]
+    #new thing
+    
+    (S, I, R) = rungeKuttaChange(S, I, R, timeStep, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
     
 
     
     ##error estimates, using formula for stepsize of 2h, where y is the value with stepsize of h and u is with stepsize 2h:
     ##  E_n = (y_n - u_n) / (2^m -1), m = h for R-K 4th order method so E_n = (y_n - u_n) / 31
+    ##order of error for 1 timestep is O(h^5), so total ~O(h^4)
     
     ##plotting here
     
+    print('Regular Plot, timestep = '+timeStep)
     plotIndex = 0
     
-    Plotter.plotThis22(numpy.transpose(S)[plotIndex],numpy.transpose(I)[plotIndex], numpy.transpose(R)[plotIndex], plotIndex) ##S pop, I pop, R pop, index/name of location
+    Plotter.plotThis22(S[plotIndex, I[plotIndex, R[plotIndex], 'h = 1h: The Spread of the Plague in Area ' +plotIndex)
     plt.show()
+    plt.clf()
+    
+    ##now with double the timestep (should be approx ~2^4 times the error)
+    
+    timeStep = timeStep * 2
+    
+    print('Error-Comparison Plot, timestep = '+timeStep)
+    
+    (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
+    
+    (S2, I2, R2) = rungeKuttaChange(S2, I2, R2, timeStep, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
+    
+    Plotter.plotThis22(S2[plotIndex, I2[plotIndex, R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +plotIndex)
+    plt.show()
+    plt.clf()
+    
+    ##now with triple the timestep (should be approx ~2^4 times the error)
+    
+    timeStep = timeStep * 3/2
+    
+    print('Error-Comparison Plot, timestep = '+timeStep)
+    
+    (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
+    
+    (S3, I3, R3) = rungeKuttaChange(S3, I3, R3, timeStep, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
+    
+    Plotter.plotThis22(S3[plotIndex, I3[plotIndex, R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +plotIndex)
+    plt.show()
+    plt.clf()
+    
+    print('Difference in values for endpoints in infected pop: between h and 2h' + numpy.abs( I[runLength - 1] - I2[runLength - 1] ) )
+    print('Difference in values for endpoints in infected pop: between 2h and 3h' + numpy.abs( I3[runLength - 1] - I2[runLength - 1] ) )
+    print('Difference in values for endpoints in infected pop: between h and 3h' + numpy.abs( I[runLength - 1] - I3[runLength - 1] ) )
+    
     
     print('done')
     #ended
