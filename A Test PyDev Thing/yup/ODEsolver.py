@@ -6,11 +6,12 @@ def valueGiver(S, I, R, timeStepsPerHour):
     runLength = S.shape[1]
     
     
-    Stemp = S[pl][0]
-    Itemp = I[pl][0]
-    Rtemp = R[pl][0]
     
     for pl in range(0, numPlaces):
+        
+         Stemp = S[pl][0]
+         Itemp = I[pl][0]
+         Rtemp = R[pl][0]
         
         for h in range(0, runLength):
 
