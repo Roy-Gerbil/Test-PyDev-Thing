@@ -21,10 +21,7 @@ def valueGiver(Sfull, Ifull, Rfull, timeStepsPerHour):
             
             for pl in range(0, numPlaces): ##every place
                 
-                S = Stemp[pl]
-                I = Itemp[pl]
-                R = Rtemp[pl]
-                
+
                 
             
                 Stemp[pl] = Stemp[pl] + 1/6(F1 + 2*F2 + 2*F3 + F4)
