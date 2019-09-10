@@ -1,32 +1,157 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+
 import numpy as np
+
 from  scipy import *
+
 from  pylab import *
+
 import matplotlib.pyplot as plt
+
 import csv
+
 import codecs
-Cities =[[" Malmö",316,588], [ "Lund", 91,940],  ["Copenhagen", 602,481]
+
+Cities =[[" Malmö",316588], [ "Lund", 91940],  ["Copenhagen", 602481]]
+
 #Pop
+
 #CityM = [[N11,N12,N13],[N21,N22,N23], [N31,N32,N33]]
 
-    
+
+P_I = 2/5    #Probability that the person at random is infected: assumed that the chance is a quarter of that for a healthy one
+P_S = 0.4
+P_R = 0.4 
+
+N1 = Cities[0][1]
+N2 = Cities[1][1]
+N3 = Cities[2][1]
+
 N12 = 2000
+
 N21 = 4000
+
 N13= 2500
+
 N31 = 4200
-S2= 0.2 * 602481
-S3 = 0.2 * 91940
+
+#Number of initial susceptible in the cities
+S1 = 240000 
+S2= 480000
+S3 = 72000
+
+# Number of initial infected in the cities
+I1 = 40000
+I2 = 80000
+I3 = 8000
+
+#Number of initial reecoved in the cities
+R1= N1- I1
+R2= N2- I2
+R3= N3- I3
+
 T= 20 * 24
+
 T0 = 0 
-def Susceptible(N,S,I,R,h,B,A,G): 
+
+def Fun(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G): 
+    h = 1/timeStepsPerHour
     
-    F1 = h * (- (B * S * I/N) - G*S + ((N12*S2 + N13*S3) - (N21*S + N31*S)))  # How to generalize this? Sum of that shit" 
-    F2 = h * ((- (B * (S+F1/2) * I/N) - G*(S+F1/2) + ((N12*S2 + N13*S3) - (N21+N31)*(S+F1/2))))
-    F3 = h * ((- (B * (S+F2/2) * I/N) - G*(S+F2/2) + ((N12*S2 + N13*S3) - (N21+N31)*((S+F1/2)))))
-    F4 = h * ((- (B * (S+F3) * I/N) - G*(S+F3) + ((N12*S2 + N13*S3) - (N21+N31)*(S+F3))))
-    A= []
-    t= [0]
-    Y = [S]
-    for i in range(480):
-        Y.append(Y[i] + 1/6 *(F1 + F2 + F3 + F4))
-        t.append( t[i] +h)
+    numPlaces = Sfull.shape[0]
+
+    runLength = Sfull.shape[1]
+    
+    Stemp = numpy.zeros(numPlaces)
+
+    Itemp = numpy.zeros(numPlaces)
+
+    Rtemp = numpy.zeros(numPlaces)
+
+    
+
+    for pl in range(0, numPlaces):
+
+        
+
+        Stemp[pl] = Sfull[pl][0]
+
+        Itemp[pl] = Ifull[pl][0]
+
+        Rtemp[pl] = Rfull[pl][0]
+
+
+    for h in range(0, runLength):
+
+        
+        for t in range(0, timeStepsPerHour):
+            
+            
+            for pl in range(0, numPlaces): ##The current temp values are stored in the history of the 'actual' values
+                
+                # Runge Kutta for Susceptible 
+                
+                F1 = h * (- (B * Stemp[pl] * Itemp[pl]/N) - G*Stemp[pl] + (((N21/N2) * Stemp[pl]2) + (N31/N3)*Stemp[pl]3) * P_Stemp[pl] - (((N12/N1) + (N13/N))* Stemp[pl]*P_Stemp[pl]))
+                F2 = h * ((- (B * (Stemp[pl]+F1/2) * Itemp[pl]/N) - G*(Stemp[pl]+F1/2) + (((N21/N2)*Stemp[pl]2 + (N31/N3)*Stemp[pl]3)* P_Stemp[pl] - (((N12/N1)+(N13/N))*(Stemp[pl]+(F1/2))*P_Stemp[pl]))))
+                F3 = h * ((- (B * (Stemp[pl]+F2/2) * Itemp[pl]/N) - G*(Stemp[pl]+F2/2) + (((N21/N2)*Stemp[pl]2 + (N31/N3)*Stemp[pl]3)* P_Stemp[pl] - (((N12/N1)+(N13/N))*(Stemp[pl]+(F2/2))*P_Stemp[pl]))))
+                F4 = h * ((- (B * (Stemp[pl]+F3) * Itemp[pl]/N) - G*(Stemp[pl]+F3) + (((N21/N2)*Stemp[pl]2 + (N31/N3)*Stemp[pl]3)* P_Stemp[pl] - (((N12/N1)+(N13/N))*(Stemp[pl]+F3)* P_Stemp[pl]))))
+        
+                # Runge Kutta for Infected
+                G1 = h * ( (B * Stemp[pl] * Itemp[pl]/N) - A*Stemp[pl] + (((N21/N2) * Itemp[pl]2) + (N31/N3)*Itemp[pl]3) * P_Itemp[pl] - (((N12/N1) + (N13/N))* Itemp[pl]*P_Itemp[pl]))   
+                G2 = h * ( (B * Stemp[pl] * (Itemp[pl]+G1/2)/N) - A*Stemp[pl] + (((N21/N2) * Itemp[pl]2) + (N31/N3)*Itemp[pl]3) * P_Itemp[pl] - (((N12/N1) + (N13/N))* (Itemp[pl]+G1/2) *P_Itemp[pl]))
+                G3 = h * ( (B * Stemp[pl] * (Itemp[pl]+G2/2)/N) - A*Stemp[pl] + (((N21/N2) * Itemp[pl]2) + (N31/N3)*Itemp[pl]3) * P_Itemp[pl] - (((N12/N1) + (N13/N))* (Itemp[pl]+G2/2) *P_Itemp[pl]))
+                G4 = h * ( (B * Stemp[pl] * (Itemp[pl]+G3)/N) - A*Stemp[pl] + (((N21/N2) * Itemp[pl]2) + (N31/N3)*Itemp[pl]3) * P_Itemp[pl] - (((N12/N1) + (N13/N))* (Itemp[pl]+G3) *P_Itemp[pl]))
+            
+                #Runge Kutta for recovered
+                K1 = h * ( (G* Stemp[pl])  + A*Itemp[pl] + (((N21/N2) * Rtemp[pl]2) + (N31/N3)*Rtemp[pl]3) * P_Rtemp[pl] - (((N12/N1) + (N13/N))* Rtemp[pl]*P_Rtemp[pl]))
+                K2 = h * ( (G* Stemp[pl])  + A*Itemp[pl] + (((N21/N2) * Rtemp[pl]2) + (N31/N3)*Rtemp[pl]3) * P_Rtemp[pl] - (((N12/N1) + (N13/N))* (Rtemp[pl] +K1/2) *P_Rtemp[pl]))
+                K3 = h * ( (G* Stemp[pl])  + A*Itemp[pl] + (((N21/N2) * Rtemp[pl]2) + (N31/N3)*Rtemp[pl]3) * P_Rtemp[pl] - (((N12/N1) + (N13/N))* (Rtemp[pl]+ K2/2) *P_Rtemp[pl]))
+                K4 = h * ( (G* Stemp[pl])  + A*Itemp[pl] + (((N21/N2) * Rtemp[pl]2) + (N31/N3)*Rtemp[pl]3) * P_Rtemp[pl] - (((N12/N1) + (N13/N))* (Rtemp[pl] + K3/2)*P_Rtemp[pl]))
+               
+                # Runge Kutta for Susceptible 
+                #F1 = h * (- (B * S * I/N) - G*S + (((N21/N2) * S2) + (N31/N3)*S3) * P_S - (((N12/N1) + (N13/N))* S*P_S))
+                #F2 = h * ((- (B * (S+F1/2) * I/N) - G*(S+F1/2) + (((N21/N2)*S2 + (N31/N3)*S3)* P_S - (((N12/N1)+(N13/N))*(S+(F1/2))*P_S))))
+                #F3 = h * ((- (B * (S+F2/2) * I/N) - G*(S+F2/2) + (((N21/N2)*S2 + (N31/N3)*S3)* P_S - (((N12/N1)+(N13/N))*(S+(F2/2))*P_S))))
+                #F4 = h * ((- (B * (S+F3) * I/N) - G*(S+F3) + (((N21/N2)*S2 + (N31/N3)*S3)* P_S - (((N12/N1)+(N13/N))*(S+F3)* P_S))))
+        
+                # Runge Kutta for Infected
+                #G1 = h * ( (B * S * I/N) - A*S + (((N21/N2) * I2) + (N31/N3)*I3) * P_I - (((N12/N1) + (N13/N))* I*P_I))   
+                #G2 = h * ( (B * S * (I+G1/2)/N) - A*S + (((N21/N2) * I2) + (N31/N3)*I3) * P_I - (((N12/N1) + (N13/N))* (I+G1/2) *P_I))
+                #G3 = h * ( (B * S * (I+G2/2)/N) - A*S + (((N21/N2) * I2) + (N31/N3)*I3) * P_I - (((N12/N1) + (N13/N))* (I+G2/2) *P_I))
+                #G4 = h * ( (B * S * (I+G3)/N) - A*S + (((N21/N2) * I2) + (N31/N3)*I3) * P_I - (((N12/N1) + (N13/N))* (I+G3) *P_I))
+            
+                #Runge Kutta for recovered
+                #K1 = h * ( (G* S)  + A*I + (((N21/N2) * R2) + (N31/N3)*R3) * P_R - (((N12/N1) + (N13/N))* R*P_R))
+                #K2 = h * ( (G* S)  + A*I + (((N21/N2) * R2) + (N31/N3)*R3) * P_R - (((N12/N1) + (N13/N))* (R +K1/2) *P_R))
+                #K3 = h * ( (G* S)  + A*I + (((N21/N2) * R2) + (N31/N3)*R3) * P_R - (((N12/N1) + (N13/N))* (R+ K2/2) *P_R))
+                #K4 = h * ( (G* S)  + A*I + (((N21/N2) * R2) + (N31/N3)*R3) * P_R - (((N12/N1) + (N13/N))* (R + K3/2)*P_R))
+
+                Stemp = Stemp + 1/6(F1 + 2*F2 + 2*F3 + F4)
+
+                
+
+                Itemp = Itemp + 1/6(G1 + 2*G2 + 2*G3 + G4)
+
+                
+
+                Rtemp = Rtemp + 1/6(K1 + 2*K2 + 2*K3 + K4)
+                
+                
+
+
+        for pl in range(0, numPlaces): ##The current temp values are stored in the history of the 'actual' values
+
+            
+
+            Sfull[pl][h+1] = numpy.int(Stemp[pl])
+
+            Ifull[pl][h+1] = numpy.int(Itemp[pl])
+
+            Rfull[pl][h+1] = numpy.int(Rtemp[pl])
+
     plot(t,Y)
+    return (S, I, R)
