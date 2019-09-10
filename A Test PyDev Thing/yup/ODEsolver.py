@@ -5,14 +5,15 @@ def valueGiver(S, I, R, timeStepsPerHour):
     numPlaces = S.shape[0]
     runLength = S.shape[1]
     
+    
+    Stemp = S[pl][0]
+    Itemp = I[pl][0]
+    Rtemp = R[pl][0]
+    
     for pl in range(0, numPlaces):
         
         for h in range(0, runLength):
-            
-            Stemp = S[pl][h]
-            Itemp = I[pl][h]
-            Rtemp = R[pl][h]
-            
+
             for t in range(0, timeStepsPerHour):
                 
                 Stemp = Stemp + 1/6(F1 + 2*F2 + 2*F3 + F4)
