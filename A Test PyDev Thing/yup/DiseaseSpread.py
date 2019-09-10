@@ -27,7 +27,7 @@ if __name__ == '__main__':
     
     runLength = 24*30*6 #units of hours, how long the simulation covers
     
-    timeStep = 1/9 #timestep in units of hours
+    timeStepsPerHour = 9 #timeStepsPerHours each hour (data saved each hour)
     
     vaccinationsPerHour = numpy.int(500/24) ##assuming 500 per day now
     ##settings end
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 #         
 # 
 #         ##get population changes
-#         changes = rungeKuttaChange(I[hour], S[hour], R[hour], timeStep, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
+#         changes = rungeKuttaChange(I[hour], S[hour], R[hour], timeStepsPerHour, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
 #         ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
 #         ##changes index 0 = recovered population, 1 = newly infected
 #         
@@ -86,46 +86,46 @@ if __name__ == '__main__':
 
     #new thing
     
-    (S, I, R) = rungeKuttaChange(S, I, R, timeStep, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
+    (S, I, R) = rungeKuttaChange(S, I, R, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
     
 
     
     ##error estimates, using formula for stepsize of 2h, where y is the value with stepsize of h and u is with stepsize 2h:
     ##  E_n = (y_n - u_n) / (2^m -1), m = h for R-K 4th order method so E_n = (y_n - u_n) / 31
-    ##order of error for 1 timestep is O(h^5), so total ~O(h^4)
+    ##order of error for 1 timeStepsPerHour is O(h^5), so total ~O(h^4)
     
     ##plotting here
     
-    print('Regular Plot, timestep = '+timeStep)
+    print('Regular Plot, timeStepsPerHour = '+timeStepsPerHour)
     plotIndex = 0
     
     Plotter.plotThis22(S[plotIndex, I[plotIndex, R[plotIndex], 'h = 1h: The Spread of the Plague in Area ' +plotIndex)
     plt.show()
     plt.clf()
     
-    ##now with double the timestep (should be approx ~2^4 times the error)
+    ##now with double the timeStepsPerHour (should be approx ~2^4 times the error)
     
-    timeStep = timeStep * 2
+    timeStepsPerHour = timeStepsPerHour * 2
     
-    print('Error-Comparison Plot, timestep = '+timeStep)
+    print('Error-Comparison Plot, timeStepsPerHour = '+timeStepsPerHour)
     
     (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S2, I2, R2) = rungeKuttaChange(S2, I2, R2, timeStep, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
+    (S2, I2, R2) = rungeKuttaChange(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
     
     Plotter.plotThis22(S2[plotIndex, I2[plotIndex, R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +plotIndex)
     plt.show()
     plt.clf()
     
-    ##now with triple the timestep (should be approx ~2^4 times the error)
+    ##now with triple the timeStepsPerHour (should be approx ~2^4 times the error)
     
-    timeStep = timeStep * 3/2
+    timeStepsPerHour = timeStepsPerHour * 3/2
     
-    print('Error-Comparison Plot, timestep = '+timeStep)
+    print('Error-Comparison Plot, timeStepsPerHour = '+timeStepsPerHour)
     
     (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S3, I3, R3) = rungeKuttaChange(S3, I3, R3, timeStep, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
+    (S3, I3, R3) = rungeKuttaChange(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate/24, vaccinationsPerHour)
     
     Plotter.plotThis22(S3[plotIndex, I3[plotIndex, R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +plotIndex)
     plt.show()
