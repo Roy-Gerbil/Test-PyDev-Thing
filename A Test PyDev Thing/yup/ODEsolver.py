@@ -107,7 +107,7 @@ def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M):
                 # Runge Kutta for Susceptible 
                 
     
-                F1 = h * (- (B * Stemp[pl] * Itemp[pl]/(Stemp[pl] + Itemp[pl]+Rtemp[pl]) - G*Stemp[pl]))
+                F1 = h * (- (B * Stemp[pl] * Itemp[pl]/(Stemp[pl] + Itemp[pl]+Rtemp[pl])) - G*Stemp[pl])
                 for pl2 in range(0,numPlaces):
                     if(pl2 !=pl):
                         F1 = F1 + h*((M[0][pl2][pl] * Stemp[pl2]) - M[0][pl][pl2]*Stemp[pl]) 
@@ -182,15 +182,15 @@ def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M):
                 
                 
 
-            
-        if(hour!=runLength): ##because we are adding changes from 0
+        print(hour)
+        if(hour!= (runLength-1)): ##because we are adding changes from 0
             for pl in range(0, numPlaces): ##The current temp values are stored in the history of the 'actual' values
     
-                print ('S'+str(pl)+':'+str(Stemp[pl]))
+                #print ('S'+str(pl)+':'+str(Stemp[pl]))
                 Sfull[pl][hour+1] = numpy.int(Stemp[pl])
-                print ('I'+str(pl)+':'+str(Itemp[pl]))
+                #print ('I'+str(pl)+':'+str(Itemp[pl]))
                 Ifull[pl][hour+1] = numpy.int(Itemp[pl])
-                print ('R'+str(pl)+':'+str(Rtemp[pl]))
+                #print ('R'+str(pl)+':'+str(Rtemp[pl]))
                 Rfull[pl][hour+1] = numpy.int(Rtemp[pl])
 
     

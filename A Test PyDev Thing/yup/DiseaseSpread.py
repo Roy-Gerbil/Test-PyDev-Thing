@@ -28,17 +28,20 @@ if __name__ == '__main__':
     
     ##settings
     
-    runLength = 24 #units of hours, how long the simulation covers
+    runLength = 24*7 #units of hours, how long the simulation covers
     
-    timeStepsPerHour = 9 #timeStepsPerHours each hour (data saved each hour)
+    timeStepsPerHour = 20 #timeStepsPerHours each hour (data saved each hour, can't go below 1)
     
-    vaccinationsPerHour = numpy.int(500/24) ##assuming 500 per day now
-    ##settings end
+    
     
     #Variable Initialization: Populations and constants
     
-    places = [["Malmo", 316588, .02], [ "Lund", 91940, 0], ["Copenhagen", 602481, 0]] ##the places, each places has name, inital pop, initial infected fraction
+    places = [["Malmo", 316588, .4], [ "Lund", 91940, 0], ["Copenhagen", 602481, 0]] ##the places, each places has name, inital pop, initial infected fraction
     
+    vaccinationChancePerHour = 500/places[1][1] ##here, use static rate, made by initially assuming 500 per day created in Lund
+    
+    ##settings end
+     
     numPlaces = len(places)
     
     placePop = numpy.zeros(numPlaces) ##initial population for each place
@@ -49,7 +52,7 @@ if __name__ == '__main__':
         infectedFrac[i] = places[i][2]
     
     infectionProbPerContact = 0.05 ##probability to infect person per human-human contact
-    recovRate = 0.01/24 ## fraction of people per hour
+    recovRate = 0.02/24 ## fraction of people per hour
     
     ##not sure if using this one
     humanContactsPerHour = numpy.zeros((numPlaces, 24)) + 0.5 ##average contact one person has each hour, for each place and each hour ##CURRENTLY each hour is identical
@@ -57,7 +60,25 @@ if __name__ == '__main__':
 
     
     ##movement probabilities, movementChance[i][j][k] is fractional probability for 1 person of type i to move from place j to place k (( [0] is S, [1] is I, [2] is R ))
-    movementChances = numpy.zeros((3, numPlaces, numPlaces)) + 0.0001 ##hopefully a good starting chance, somewhat random movement
+    
+    movementChances = numpy.zeros((3, numPlaces, numPlaces))
+    
+    ###start by assuming that 2000 people move to/from Lund to Malmo per hour on average
+    lundMovementChance = 1400/places[1][1]
+    
+
+    movementChances[0][1][0] = lundMovementChance
+    movementChances[0][0][1] = movementChances[0][1][0] * places[1][1]/places[0][1]
+    movementChances[0][0][2] = lundMovementChance
+    movementChances[0][2][0] = movementChances[0][0][2] * places[0][1]/places[2][1]
+    
+    ###R pop is the same as S pop, I pop difference added later
+    
+    for pl in range(0, numPlaces):
+        for pl2 in range(0, numPlaces):
+            movementChances[1][pl][pl2] = movementChances[0][pl][pl2]
+            movementChances[2][pl][pl2] = movementChances[0][pl][pl2]
+    
     movementChances[1] = movementChances[1] / 5 ##1/5th chance for an infected person to move
     
     
@@ -80,7 +101,7 @@ if __name__ == '__main__':
 #         
 # 
 #         ##get population changes
-#         changes = ODEsolver.rungeKuttaIterator(I[hour], S[hour], R[hour], timeStepsPerHour, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
+#         changes = ODEsolver.rungeKuttaIterator(I[hour], S[hour], R[hour], timeStepsPerHour, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationChancePerHour) 
 #         ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
 #         ##changes index 0 = recovered population, 1 = newly infected
 #         
@@ -92,26 +113,41 @@ if __name__ == '__main__':
 #             R[hour+1][i] = R[hour][i] + changes[i][2]
 #===============================================================================
 
-    #new thing
+    #plots here
+    plotIndex = 0
     
     ##now a comparison with simplified theory: no recovery, no vaccinations, no movement, only 1 area:
     ##theoretical equation: dS/dt = -B*S*I/N, where B is the infection constant, and N is total population
     ##solved, we get: t_f - t_i = ln[ S_f*(N - S_i) / ( S_i*( N-S_f )) ]
     
-    print('Simplified theory comparison for runtime of  = ' + str(runLength))
+    #===========================================================================
+    # print('Simplified theory comparison for runtime of  = ' + str(runLength))
+    # 
+    # (Ss, Is, Rs) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
+    #  
+    # (Ss, Is, Rs) = ODEsolver.rungeKuttaIterator(Ss, Is, Rs, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate*0, vaccinationChancePerHour*0, movementChances*0)
+    #  
+    # Plotter.plotThis22(Ss[plotIndex], Is[plotIndex], Rs[plotIndex], 'The Spread of the Plague in Area ' +places[plotIndex][0])
+    # plt.show()
+    # plt.clf()
+    #  
+    # print('Using the theory to calculate time passed, it should be: ' + str( (-1 * humanContactsPerHour[0][0] * infectionProbPerContact) * numpy.log( (Ss[0][runLength - 1] * ( (Ss[0][0] + Is[0][0]) - Ss[0][0])) / (Ss[0][0] * ( (Ss[0][0] + Is[0][0]) - Ss[0][runLength - 1] )) )) + ' hours. In the simulation this change was over: ' +str(runLength)+ ' hours.')
+    #  
+    #  
+    # ##now a view of 1 area with recovery and vaccination, but without movement:
+    #  
+    # print('Simplified runtime of  = ' + str(runLength))
+    #  
+    # (Ss2, Is2, Rs2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
+    #  
+    # (Ss2, Is2, Rs2) = ODEsolver.rungeKuttaIterator(Ss2, Is2, Rs2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances*0)
+    #  
+    # Plotter.plotThis22Multi(Ss2, Is2, Rs2, 'The Spread of the Plague in Area ' +places[plotIndex][0])
+    # plt.show()
+    # plt.clf()
+    #===========================================================================
+     
     
-    (Ss, Is, Rs) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
-    
-    (Ss, Is, Rs) = ODEsolver.rungeKuttaIterator(Ss, Is, Rs, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate*0, vaccinationsPerHour*0, movementChances*0)
-    
-    Plotter.plotThis22(Ss[plotIndex], Is[plotIndex], Rs[plotIndex], 'The Spread of the Plague in Area ' +places[plotIndex][0])
-    plt.show()
-    plt.clf()
-    
-    print('Using the theory to calculate time passed, it should be: ' + numpy.log( (Ss[0][runLength - 1] * ( (Ss[0][0] + Is[0][0]) - Ss[0][0])) / (Ss[0][0] * ( (Ss[0][0] + Is[0][0]) - Ss[0][runLength - 1] )) ) + ' hours. In the simulation this change was over: ' +runLength+ ' hours.')
-    
-    
-    (S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
     
 
     
@@ -122,36 +158,26 @@ if __name__ == '__main__':
     ##plotting here
     
     
+    (S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances)
+     
+    print('Regular Plot, timeStepsPerHour = '+str(timeStepsPerHour))
     
-    print('Regular Plot, timeStepsPerHour = '+timeStepsPerHour)
-    plotIndex = 0
-    
-    Plotter.plotThis22(S[plotIndex], I[plotIndex], R[plotIndex], 'h = 1h: The Spread of the Plague in Area ' +places[plotIndex][0])
+    Plotter.plotThis22Multi(S, I, R, places, True)
     plt.show()
     plt.clf()
     
     
-    ##now a view of 1 area with recovery and vaccination, but without movement:
     
-    print('Simplified runtime of  = ' + runLength)
-    
-    (Ss2, Is2, Rs2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
-    
-    (Ss2, Is2, Rs2) = ODEsolver.rungeKuttaIterator(Ss2, Is2, Rs2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances*0)
-    
-    Plotter.plotThis22(Ss2[plotIndex], Is2[plotIndex], Rs2[plotIndex], 'The Spread of the Plague in Area ' +places[plotIndex][0])
-    plt.show()
-    plt.clf()
     
     ##now with double the timeStepsPerHour (should be approx ~2^4 times the error)
     
     timeStepsPerHour = timeStepsPerHour * 2
     
-    print('Error-Comparison Plot, timeStepsPerHour = '+timeStepsPerHour)
+    print('Error-Comparison Plot, timeStepsPerHour = '+str(timeStepsPerHour))
     
     (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
+    (S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances)
     
     Plotter.plotThis22(S2[plotIndex], I2[plotIndex], R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
@@ -161,19 +187,19 @@ if __name__ == '__main__':
     
     timeStepsPerHour = timeStepsPerHour * 3/2
     
-    print('Error-Comparison Plot, timeStepsPerHour = '+timeStepsPerHour)
+    print('Error-Comparison Plot, timeStepsPerHour = '+str(timeStepsPerHour))
     
     (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
+    (S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances)
     
     Plotter.plotThis22(S3[plotIndex], I3[plotIndex], R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
     plt.clf()
     
-    print('Difference in values for endpoints in infected pop: between h and 2h' + numpy.abs( I[runLength - 1] - I2[runLength - 1] ) )
-    print('Difference in values for endpoints in infected pop: between 2h and 3h' + numpy.abs( I3[runLength - 1] - I2[runLength - 1] ) )
-    print('Difference in values for endpoints in infected pop: between h and 3h' + numpy.abs( I[runLength - 1] - I3[runLength - 1] ) )
+    print('Difference in values for endpoints in infected pop: between h and 2h' + str(numpy.abs( I[runLength - 1] - I2[runLength - 1] ) ))
+    print('Difference in values for endpoints in infected pop: between 2h and 3h' + str(numpy.abs( I3[runLength - 1] - I2[runLength - 1] ) ))
+    print('Difference in values for endpoints in infected pop: between h and 3h' + str(numpy.abs( I[runLength - 1] - I3[runLength - 1] ) ))
     
     
     print('done')
