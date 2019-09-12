@@ -5,17 +5,9 @@ Spyder Editor
 This is a temporary script file.
 """
 import numpy
-import numpy as np
 
 from  scipy import *
 
-from  pylab import *
-
-import matplotlib.pyplot as plt
-
-import csv
-
-import codecs
 
 places =[[" Malmö",316588], [ "Lund", 91940],  ["Copenhagen", 602481]]
 4/11
@@ -78,18 +70,18 @@ def setInitialPops(runLength, numPlaces, placePop, infectedFrac): ###S[0][1] is 
         S[i][0] = placePop[i] - I[i][0]
         
 
-def Fun(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G): 
+def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M): 
     h = 1/timeStepsPerHour
     
     numPlaces = Sfull.shape[0]
 
     runLength = Sfull.shape[1]
     
-    Stemp = numpy.zeros(numPlaces)
+    Stemp = numpy.zeros(numPlaces) + 0.0
 
-    Itemp = numpy.zeros(numPlaces)
+    Itemp = numpy.zeros(numPlaces) + 0.0
 
-    Rtemp = numpy.zeros(numPlaces)
+    Rtemp = numpy.zeros(numPlaces) + 0.0
 
     
 
@@ -97,14 +89,14 @@ def Fun(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G):
 
         
 
-        Stemp[pl] = Sfull[pl][0]
+        Stemp[pl] = Sfull[pl][0]*1.0
 
-        Itemp[pl] = Ifull[pl][0]
+        Itemp[pl] = Ifull[pl][0]*1.0
 
-        Rtemp[pl] = Rfull[pl][0]
+        Rtemp[pl] = Rfull[pl][0]*1.0
 
 
-    for h in range(0, runLength):
+    for hour in range(0, runLength):
 
         
         for t in range(0, timeStepsPerHour):
@@ -174,32 +166,32 @@ def Fun(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G):
                 K4 = h * ( (G* Stemp[pl])  + A*Itemp[pl])
                 for pl2 in range(0,numPlaces):
                     if(pl2 !=pl):
-                        K1 = K1 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl+K3]))  
+                        K1 = K1 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl]+K3))  
                     
                
 
-                Stemp[pl] = Stemp[pl] + 1/6(F1 + 2*F2 + 2*F3 + F4)
+                Stemp[pl] = Stemp[pl] + 1/6*(F1 + 2*F2 + 2*F3 + F4)
 
                 
 
-                Itemp[pl] = Itemp[pl] + 1/6(G1 + 2*G2 + 2*G3 + G4)
+                Itemp[pl] = Itemp[pl] + 1/6*(G1 + 2*G2 + 2*G3 + G4)
 
                 
 
-                Rtemp[pl] = Rtemp[pl] + 1/6(K1 + 2*K2 + 2*K3 + K4)
+                Rtemp[pl] = Rtemp[pl] + 1/6*(K1 + 2*K2 + 2*K3 + K4)
                 
                 
-
-
-        for pl in range(0, numPlaces): ##The current temp values are stored in the history of the 'actual' values
 
             
-
-            Sfull[pl][h+1] = numpy.int(Stemp[pl])
-
-            Ifull[pl][h+1] = numpy.int(Itemp[pl])
-
-            Rfull[pl][h+1] = numpy.int(Rtemp[pl])
+        if(hour!=runLength): ##because we are adding changes from 0
+            for pl in range(0, numPlaces): ##The current temp values are stored in the history of the 'actual' values
+    
+                print ('S'+str(pl)+':'+str(Stemp[pl]))
+                Sfull[pl][hour+1] = numpy.int(Stemp[pl])
+                print ('I'+str(pl)+':'+str(Itemp[pl]))
+                Ifull[pl][hour+1] = numpy.int(Itemp[pl])
+                print ('R'+str(pl)+':'+str(Rtemp[pl]))
+                Rfull[pl][hour+1] = numpy.int(Rtemp[pl])
 
     
     return (Sfull, Ifull, Rfull)

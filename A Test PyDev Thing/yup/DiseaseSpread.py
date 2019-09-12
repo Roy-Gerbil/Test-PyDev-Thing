@@ -9,6 +9,7 @@ import math
 import numpy
 import matplotlib.pyplot as plt
 import Plotter
+import ODEsolver
 
 
 def setInitialPops(runLength, numPlaces, placePop, infectedFrac): ###S[0][1] is S pop for location 0 at hour 1
@@ -20,12 +21,14 @@ def setInitialPops(runLength, numPlaces, placePop, infectedFrac): ###S[0][1] is 
         I[pl][0] = numpy.int(placePop[pl]*infectedFrac[pl])
         R[pl][0] = 0
         S[pl][0] = placePop[pl] - I[pl][0]
+        
+    return (S, I, R)
 
 if __name__ == '__main__':
     
     ##settings
     
-    runLength = 24*30*6 #units of hours, how long the simulation covers
+    runLength = 24 #units of hours, how long the simulation covers
     
     timeStepsPerHour = 9 #timeStepsPerHours each hour (data saved each hour)
     
@@ -62,6 +65,10 @@ if __name__ == '__main__':
     
     ##The Numbers (in units of 1 person)
     
+    S = numpy.zeros((numPlaces,runLength))
+    I = numpy.zeros((numPlaces,runLength))
+    R = numpy.zeros((numPlaces,runLength))
+    
     (S, I, R) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
 
     ###Iterate in the RungeKutta, the following is deprecated
@@ -73,7 +80,7 @@ if __name__ == '__main__':
 #         
 # 
 #         ##get population changes
-#         changes = rungeKuttaChange(I[hour], S[hour], R[hour], timeStepsPerHour, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
+#         changes = ODEsolver.rungeKuttaIterator(I[hour], S[hour], R[hour], timeStepsPerHour, humanContactsPerHour[i] * infectionProbPerContact, recovRate/24, vaccinationsPerHour) 
 #         ## gives population numbers of infected, susceptible, recovered/immune, average human contacts per hour (currently just take any index, ex: humanContactsPerHour[i][0]) * fractional chance to infect a susceptible person per contact, then fractional recovery rate per hour
 #         ##changes index 0 = recovered population, 1 = newly infected
 #         
@@ -87,7 +94,24 @@ if __name__ == '__main__':
 
     #new thing
     
-    (S, I, R) = rungeKuttaChange(S, I, R, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
+    ##now a comparison with simplified theory: no recovery, no vaccinations, no movement, only 1 area:
+    ##theoretical equation: dS/dt = -B*S*I/N, where B is the infection constant, and N is total population
+    ##solved, we get: t_f - t_i = ln[ S_f*(N - S_i) / ( S_i*( N-S_f )) ]
+    
+    print('Simplified theory comparison for runtime of  = ' + str(runLength))
+    
+    (Ss, Is, Rs) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
+    
+    (Ss, Is, Rs) = ODEsolver.rungeKuttaIterator(Ss, Is, Rs, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate*0, vaccinationsPerHour*0, movementChances*0)
+    
+    Plotter.plotThis22(Ss[plotIndex], Is[plotIndex], Rs[plotIndex], 'The Spread of the Plague in Area ' +places[plotIndex][0])
+    plt.show()
+    plt.clf()
+    
+    print('Using the theory to calculate time passed, it should be: ' + numpy.log( (Ss[0][runLength - 1] * ( (Ss[0][0] + Is[0][0]) - Ss[0][0])) / (Ss[0][0] * ( (Ss[0][0] + Is[0][0]) - Ss[0][runLength - 1] )) ) + ' hours. In the simulation this change was over: ' +runLength+ ' hours.')
+    
+    
+    (S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
     
 
     
@@ -97,6 +121,8 @@ if __name__ == '__main__':
     
     ##plotting here
     
+    
+    
     print('Regular Plot, timeStepsPerHour = '+timeStepsPerHour)
     plotIndex = 0
     
@@ -104,21 +130,6 @@ if __name__ == '__main__':
     plt.show()
     plt.clf()
     
-    ##now a comparison with simplified theory: no recovery, no vaccinations, no movement, only 1 area:
-    ##theoretical equation: dS/dt = -B*S*I/N, where B is the infection constant, and N is total population
-    ##solved, we get: t_f - t_i = ln[ S_f*(N - S_i) / ( S_i*( N-S_f )) ]
-    
-    print('Simplified theory comparison for runtime of  = ' + runLength)
-    
-    (Ss, Is, Rs) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
-    
-    (Ss, Is, Rs) = rungeKuttaChange(Ss, Is, Rs, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate*0, vaccinationsPerHour*0, movementChances*0)
-    
-    Plotter.plotThis22(Ss[plotIndex], Is[plotIndex], Rs[plotIndex], 'The Spread of the Plague in Area ' +places[plotIndex][0])
-    plt.show()
-    plt.clf()
-    
-    print('Using the theory to calculate time passed, it should be: ' + numpy.log( (Ss[0][runLength - 1] * ( (Ss[0][0] + Is[0][0]) - Ss[0][0])) / (Ss[0][0] * ( (Ss[0][0] + Is[0][0]) - Ss[0][runLength - 1] )) ) + ' hours. In the simulation this change was over: ' +runLength+ ' hours.')
     
     ##now a view of 1 area with recovery and vaccination, but without movement:
     
@@ -126,7 +137,7 @@ if __name__ == '__main__':
     
     (Ss2, Is2, Rs2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (Ss2, Is2, Rs2) = rungeKuttaChange(Ss2, Is2, Rs2, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances*0)
+    (Ss2, Is2, Rs2) = ODEsolver.rungeKuttaIterator(Ss2, Is2, Rs2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances*0)
     
     Plotter.plotThis22(Ss2[plotIndex], Is2[plotIndex], Rs2[plotIndex], 'The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
@@ -140,7 +151,7 @@ if __name__ == '__main__':
     
     (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S2, I2, R2) = rungeKuttaChange(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
+    (S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
     
     Plotter.plotThis22(S2[plotIndex], I2[plotIndex], R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
@@ -154,7 +165,7 @@ if __name__ == '__main__':
     
     (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S3, I3, R3) = rungeKuttaChange(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
+    (S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationsPerHour, movementChances)
     
     Plotter.plotThis22(S3[plotIndex], I3[plotIndex], R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
