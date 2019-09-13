@@ -284,7 +284,7 @@ def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M,MLD,Places):
 
                     if(pl2 !=pl):
 
-                        F4 = F4 + h*(((M[0][pl2][pl][t] * Stemp[pl2]) - M[0][pl][pl2][t]*(Stemp[pl] + F2))) 
+                        F4 = F4 + h*(((M[0][pl2][pl][t] * Stemp[pl2]) - M[0][pl][pl2][t]*(Stemp[pl] + F3))) 
 
                         
 
