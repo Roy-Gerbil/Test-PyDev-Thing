@@ -70,7 +70,7 @@ def setInitialPops(runLength, numPlaces, placePop, infectedFrac): ###S[0][1] is 
         S[i][0] = placePop[i] - I[i][0]
         
 
-def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M): 
+def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M,MLD): 
     h = 1/timeStepsPerHour
     
     numPlaces = Sfull.shape[0]

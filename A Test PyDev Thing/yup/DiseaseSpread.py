@@ -36,8 +36,10 @@ if __name__ == '__main__':
     
     #Variable Initialization: Populations and constants
     
-    places = [["Malmo", 316588, .4], [ "Lund", 91940, 0], ["Copenhagen", 602481, 0], ["Stockholm", 965232, 0]] ##the places, each places has name, inital pop, initial infected fraction
+    places = [["Malmo", 316588, .4, 55.604980, 13.003822], [ "Lund", 91940, 0, 55.704659, 13.191007], ["Copenhagen", 602481, 0, 55.676098, 12.568337], ["Stockholm", 965232, 0, 59.329323, 18.068581]] ##the places, each places has name, inital pop, initial infected fraction
     
+    print(numpy.sqrt( (places[0][3]-places[1][3])**2 + (places[0][4]-places[1][4])**2  ))
+    ##each place has coordinates (used only for Long-distance travel to calculate very rough travel times)
     vaccinationChancePerHour = 500/places[1][1] ##here, use static rate, made by initially assuming 500 per day created in Lund
     
     ##settings end
@@ -190,7 +192,7 @@ if __name__ == '__main__':
     ##plotting here
     
     
-    (S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
+    #(S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
      
     print('Regular Plot, timeStepsPerHour = '+str(timeStepsPerHour))
     
@@ -209,7 +211,7 @@ if __name__ == '__main__':
     
     (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
+    #(S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
     
     Plotter.plotThis22(S2[plotIndex], I2[plotIndex], R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
@@ -223,7 +225,7 @@ if __name__ == '__main__':
     
     (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
+    #(S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
     
     Plotter.plotThis22(S3[plotIndex], I3[plotIndex], R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
