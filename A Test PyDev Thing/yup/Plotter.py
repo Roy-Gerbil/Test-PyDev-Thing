@@ -25,7 +25,7 @@ def plotThis22Multi (yS, yI, yR, places, plotTotal): ##S pop, I pop, R pop, inde
     
     
     for i in range(0, yS.shape[0]):
-        plt.subplot( (221+i) )
+        plt.subplot( (221+i) ) ##currently just 4 at once
         plt.plot(ts, yS[i]/1000, 'C1', label='S Pop')
         plt.plot(ts, yI[i]/1000, 'C2', label='I Pop')
         plt.plot(ts, yR[i]/1000, 'C3', label='R Pop')

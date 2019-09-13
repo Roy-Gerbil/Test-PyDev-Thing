@@ -125,7 +125,7 @@ def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M):
                 F4 = h * ((- (B * (Stemp[pl]+F3) * Itemp[pl]/(Stemp[pl] + Itemp[pl]+Rtemp[pl])) - G*(Stemp[pl]+F3))) 
                 for pl2 in range(0,numPlaces):
                     if(pl2 !=pl):
-                        F4 = F4 + h*(((M[0][pl2][pl] * Stemp[pl2]) - M[0][pl][pl2]*(Stemp[pl] + F2))) 
+                        F4 = F4 + h*(((M[0][pl2][pl] * Stemp[pl2]) - M[0][pl][pl2]*(Stemp[pl] + F3))) 
                         
                         
                         
@@ -158,15 +158,15 @@ def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M):
                 K2 = h * ( (G* Stemp[pl])  + A*Itemp[pl]) 
                 for pl2 in range(0,numPlaces):
                     if(pl2 !=pl):
-                        K2 = K1 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl]+(K1/2)))  
+                        K2 = K2 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl]+(K1/2)))  
                 K3 = h * ( (G* Stemp[pl])  + A*Itemp[pl])
                 for pl2 in range(0,numPlaces):
                     if(pl2 !=pl):
-                        K1 = K1 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl]+(K2/2)))  
+                        K3 = K3 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl]+(K2/2)))  
                 K4 = h * ( (G* Stemp[pl])  + A*Itemp[pl])
                 for pl2 in range(0,numPlaces):
                     if(pl2 !=pl):
-                        K1 = K1 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl]+K3))  
+                        K4 = K4 + h*((M[2][pl2][pl] * Rtemp[pl2]) - M[2][pl][pl2]*(Rtemp[pl]+K3))  
                     
                
 
@@ -182,7 +182,7 @@ def rungeKuttaIterator(Sfull,Ifull,Rfull,timeStepsPerHour,B,A,G,M):
                 
                 
 
-        print(hour)
+        #print(hour)
         if(hour!= (runLength-1)): ##because we are adding changes from 0
             for pl in range(0, numPlaces): ##The current temp values are stored in the history of the 'actual' values
     

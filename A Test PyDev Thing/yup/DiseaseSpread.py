@@ -30,13 +30,13 @@ if __name__ == '__main__':
     
     runLength = 24*7 #units of hours, how long the simulation covers
     
-    timeStepsPerHour = 20 #timeStepsPerHours each hour (data saved each hour, can't go below 1)
+    timeStepsPerHour = 80 #timeStepsPerHours each hour (data saved each hour, can't go below 1)
     
     
     
     #Variable Initialization: Populations and constants
     
-    places = [["Malmo", 316588, .4], [ "Lund", 91940, 0], ["Copenhagen", 602481, 0]] ##the places, each places has name, inital pop, initial infected fraction
+    places = [["Malmo", 316588, .4], [ "Lund", 91940, 0], ["Copenhagen", 602481, 0], ["Stockholm", 965232, 0]] ##the places, each places has name, inital pop, initial infected fraction
     
     vaccinationChancePerHour = 500/places[1][1] ##here, use static rate, made by initially assuming 500 per day created in Lund
     
@@ -61,16 +61,20 @@ if __name__ == '__main__':
     
     ##movement probabilities, movementChance[i][j][k] is fractional probability for 1 person of type i to move from place j to place k (( [0] is S, [1] is I, [2] is R ))
     
-    movementChances = numpy.zeros((3, numPlaces, numPlaces))
+    movementChances = numpy.zeros((3, numPlaces, numPlaces, 24))
     
     ###start by assuming that 2000 people move to/from Lund to Malmo per hour on average
     lundMovementChance = 1400/places[1][1]
     
-
-    movementChances[0][1][0] = lundMovementChance
-    movementChances[0][0][1] = movementChances[0][1][0] * places[1][1]/places[0][1]
-    movementChances[0][0][2] = lundMovementChance
-    movementChances[0][2][0] = movementChances[0][0][2] * places[0][1]/places[2][1]
+    ###movement between malmo and lund
+    movementChances[0][1][0][8] = lundMovementChance
+    movementChances[0][0][1][8] = movementChances[0][1][0][8] * places[1][1]/places[0][1] ##making movement chances normalized to population, so that no net exchange of population occurs
+    ###movement between malmo and copenhagen
+    movementChances[0][0][2][8] = lundMovementChance
+    movementChances[0][2][0][8] = movementChances[0][0][2][8] * places[0][1]/places[2][1]
+    ###movement between stockholm and lund/malmo
+    movementChances[0][3][0][8] = lundMovementChance
+    
     
     ###R pop is the same as S pop, I pop difference added later
     
@@ -78,10 +82,38 @@ if __name__ == '__main__':
         for pl2 in range(0, numPlaces):
             movementChances[1][pl][pl2] = movementChances[0][pl][pl2]
             movementChances[2][pl][pl2] = movementChances[0][pl][pl2]
+            
+            ##now scale movement by time of day, using the sum of two gaussians, peaked (now) at 7:00 and 17:00
+            for i in range(0,3):
+                for t in range(0,24):
+                    movementChances[i][pl][pl2][t] = movementChances[i][pl][pl2][8] * (numpy.exp(-(((t-7)/4)**2)) + numpy.exp(-(((t-17)/4)**2)))
     
-    movementChances[1] = movementChances[1] / 5 ##1/5th chance for an infected person to move
+    movementChances[1] = movementChances[1] * 2 / 5 ##2/5th chance for an infected person to move
     
     
+    ##now long-distance movement chances, which are done using discrete packets rather than the runge-kutta method for simplicity. (currently only between stockholm and other places)
+    movementChancesLD = numpy.zeros((3, numPlaces, numPlaces, 24))
+    ##between stockholm and malmo
+    movementChancesLD[0][3][0][8] = lundMovementChance / 10 ##assume 1/10th of people that go between lund and malmo, say, go between stockholm and malmo
+    movementChancesLD[0][0][3][8] = movementChancesLD[0][3][0][8] * places[3][1]/places[0][1]
+    ##between stockholm and lund
+    movementChancesLD[0][3][1][8] = lundMovementChance / 10 
+    movementChancesLD[0][1][3][8] = movementChancesLD[0][3][1][8] * places[3][1]/places[1][1]
+    ##between stockholm and copenhagen
+    movementChancesLD[0][3][2][8] = lundMovementChance / 10
+    movementChancesLD[0][2][3][8] = movementChancesLD[0][3][2][8] * places[3][1]/places[2][1]
+    
+    for pl in range(0, numPlaces):
+        for pl2 in range(0, numPlaces):
+            movementChancesLD[1][pl][pl2] = movementChancesLD[0][pl][pl2]
+            movementChancesLD[2][pl][pl2] = movementChancesLD[0][pl][pl2]
+            
+            ##now scale movement by time of day, using the sum of two gaussians, peaked (now) at 7:00 and 17:00
+            for i in range(0,3):
+                for t in range(0,24):
+                    movementChancesLD[i][pl][pl2][t] = movementChancesLD[i][pl][pl2][8] * (numpy.exp(-(((t-7)/4)**2)) + numpy.exp(-(((t-17)/4)**2)))
+    
+    movementChancesLD[1] = movementChancesLD[1] * 2 / 5 ##2/5th chance for an infected person to move
     
     
     ##The Numbers (in units of 1 person)
@@ -158,7 +190,7 @@ if __name__ == '__main__':
     ##plotting here
     
     
-    (S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances)
+    (S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
      
     print('Regular Plot, timeStepsPerHour = '+str(timeStepsPerHour))
     
@@ -177,7 +209,7 @@ if __name__ == '__main__':
     
     (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances)
+    (S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
     
     Plotter.plotThis22(S2[plotIndex], I2[plotIndex], R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
@@ -191,7 +223,7 @@ if __name__ == '__main__':
     
     (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
     
-    (S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances)
+    (S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
     
     Plotter.plotThis22(S3[plotIndex], I3[plotIndex], R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +places[plotIndex][0])
     plt.show()
