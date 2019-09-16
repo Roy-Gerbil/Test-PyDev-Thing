@@ -10,6 +10,7 @@ import numpy
 import matplotlib.pyplot as plt
 import Plotter
 import ODEsolver
+import ODEsolveragain
 
 
 def setInitialPops(runLength, numPlaces, placePop, infectedFrac): ###S[0][1] is S pop for location 0 at hour 1
@@ -30,15 +31,13 @@ if __name__ == '__main__':
     
     runLength = 24*7 #units of hours, how long the simulation covers
     
-    timeStepsPerHour = 80 #timeStepsPerHours each hour (data saved each hour, can't go below 1)
+    timeStepsPerHour = 40 #timeStepsPerHours each hour (data saved each hour, can't go below 1)
     
     
     
     #Variable Initialization: Populations and constants
     
     places = [["Malmo", 316588, .4, 55.604980, 13.003822], [ "Lund", 91940, 0, 55.704659, 13.191007], ["Copenhagen", 602481, 0, 55.676098, 12.568337], ["Stockholm", 965232, 0, 59.329323, 18.068581]] ##the places, each places has name, inital pop, initial infected fraction
-    
-    print(numpy.sqrt( (places[0][3]-places[1][3])**2 + (places[0][4]-places[1][4])**2  ))
     ##each place has coordinates (used only for Long-distance travel to calculate very rough travel times)
     vaccinationChancePerHour = 500/places[1][1] ##here, use static rate, made by initially assuming 500 per day created in Lund
     
@@ -54,7 +53,7 @@ if __name__ == '__main__':
         infectedFrac[i] = places[i][2]
     
     infectionProbPerContact = 0.05 ##probability to infect person per human-human contact
-    recovRate = 0.02/24 ## fraction of people per hour
+    recovRate = 0.002 ## fraction of people per hour
     
     ##not sure if using this one
     humanContactsPerHour = numpy.zeros((numPlaces, 24)) + 0.5 ##average contact one person has each hour, for each place and each hour ##CURRENTLY each hour is identical
@@ -75,20 +74,20 @@ if __name__ == '__main__':
     movementChances[0][0][2][8] = lundMovementChance
     movementChances[0][2][0][8] = movementChances[0][0][2][8] * places[0][1]/places[2][1]
     ###movement between stockholm and lund/malmo
-    movementChances[0][3][0][8] = lundMovementChance
+    movementChances[0][3][0][8] = 0 ##only LD here
     
     
     ###R pop is the same as S pop, I pop difference added later
     
     for pl in range(0, numPlaces):
         for pl2 in range(0, numPlaces):
-            movementChances[1][pl][pl2] = movementChances[0][pl][pl2]
-            movementChances[2][pl][pl2] = movementChances[0][pl][pl2]
+            movementChances[1][pl][pl2][8] = movementChances[0][pl][pl2][8]
+            movementChances[2][pl][pl2][8] = movementChances[0][pl][pl2][8]
             
             ##now scale movement by time of day, using the sum of two gaussians, peaked (now) at 7:00 and 17:00
             for i in range(0,3):
                 for t in range(0,24):
-                    movementChances[i][pl][pl2][t] = movementChances[i][pl][pl2][8] * (numpy.exp(-(((t-7)/4)**2)) + numpy.exp(-(((t-17)/4)**2)))
+                    movementChances[i][pl][pl2][t] = movementChances[i][pl][pl2][8] #* (numpy.exp(-(((t-7)/4)**2)) + numpy.exp(-(((t-17)/4)**2)))
     
     movementChances[1] = movementChances[1] * 2 / 5 ##2/5th chance for an infected person to move
     
@@ -107,16 +106,17 @@ if __name__ == '__main__':
     
     for pl in range(0, numPlaces):
         for pl2 in range(0, numPlaces):
-            movementChancesLD[1][pl][pl2] = movementChancesLD[0][pl][pl2]
-            movementChancesLD[2][pl][pl2] = movementChancesLD[0][pl][pl2]
+            movementChancesLD[1][pl][pl2][8] = movementChancesLD[0][pl][pl2][8]
+            movementChancesLD[2][pl][pl2][8] = movementChancesLD[0][pl][pl2][8]
             
             ##now scale movement by time of day, using the sum of two gaussians, peaked (now) at 7:00 and 17:00
             for i in range(0,3):
                 for t in range(0,24):
-                    movementChancesLD[i][pl][pl2][t] = movementChancesLD[i][pl][pl2][8] * (numpy.exp(-(((t-7)/4)**2)) + numpy.exp(-(((t-17)/4)**2)))
+                    movementChancesLD[i][pl][pl2][t] = movementChancesLD[i][pl][pl2][8] #* (numpy.exp(-(((t-7)/4)**2)) + numpy.exp(-(((t-17)/4)**2)))
     
     movementChancesLD[1] = movementChancesLD[1] * 2 / 5 ##2/5th chance for an infected person to move
     
+    #print(movementChancesLD)
     
     ##The Numbers (in units of 1 person)
     
@@ -190,13 +190,17 @@ if __name__ == '__main__':
     ##order of error for 1 timeStepsPerHour is O(h^5), so total ~O(h^4)
     
     ##plotting here
+    #timeStepsPerHour = 40
     
-    
-    #(S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
+    (S, I, R) = ODEsolver.rungeKuttaIterator(S, I, R, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances*0, movementChancesLD*0, places)
      
     print('Regular Plot, timeStepsPerHour = '+str(timeStepsPerHour))
     
-    Plotter.plotThis22Multi(S, I, R, places, True)
+    Plotter.plotThis22(S[0], I[0], R[0], places)
+    #Plotter.plotThis22Multi(S, I, R, places, True)
+    
+    #print('Using the theory to calculate time passed, it should be: ' + str( (-1 / humanContactsPerHour[0][0] / infectionProbPerContact) * numpy.log( (S[0][runLength - 1] * ( (S[0][0] + I[0][0]) - S[0][0])) / (S[0][0] * ( (S[0][0] + I[0][0]) - S[0][runLength - 1] )) )) + ' hours. In the simulation this change was over: ' +str(runLength - 1)+ ' hours.')
+    
     plt.show()
     plt.clf()
     
@@ -205,36 +209,38 @@ if __name__ == '__main__':
     
     ##now with double the timeStepsPerHour (should be approx ~2^4 times the error)
     
-    timeStepsPerHour = timeStepsPerHour * 2
-    
-    print('Error-Comparison Plot, timeStepsPerHour = '+str(timeStepsPerHour))
-    
-    (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
-    
-    #(S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
-    
-    Plotter.plotThis22(S2[plotIndex], I2[plotIndex], R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +places[plotIndex][0])
-    plt.show()
-    plt.clf()
-    
-    ##now with triple the timeStepsPerHour (should be approx ~2^4 times the error)
-    
-    timeStepsPerHour = timeStepsPerHour * 3/2
-    
-    print('Error-Comparison Plot, timeStepsPerHour = '+str(timeStepsPerHour))
-    
-    (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
-    
-    #(S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD)
-    
-    Plotter.plotThis22(S3[plotIndex], I3[plotIndex], R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +places[plotIndex][0])
-    plt.show()
-    plt.clf()
-    
-    print('Difference in values for endpoints in infected pop: between h and 2h' + str(numpy.abs( I[runLength - 1] - I2[runLength - 1] ) ))
-    print('Difference in values for endpoints in infected pop: between 2h and 3h' + str(numpy.abs( I3[runLength - 1] - I2[runLength - 1] ) ))
-    print('Difference in values for endpoints in infected pop: between h and 3h' + str(numpy.abs( I[runLength - 1] - I3[runLength - 1] ) ))
-    
+    #===========================================================================
+    # timeStepsPerHour = timeStepsPerHour * 2
+    # 
+    # print('Error-Comparison Plot, timeStepsPerHour = '+str(timeStepsPerHour))
+    # 
+    # (S2, I2, R2) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
+    # 
+    # (S2, I2, R2) = ODEsolver.rungeKuttaIterator(S2, I2, R2, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate*0, vaccinationChancePerHour, movementChances, movementChancesLD, places)
+    # 
+    # Plotter.plotThis22(S2[plotIndex], I2[plotIndex], R2[plotIndex], 'h = 2h: The Spread of the Plague in Area ' +places[plotIndex][0])
+    # plt.show()
+    # plt.clf()
+    # 
+    # ##now with triple the timeStepsPerHour (should be approx ~2^4 times the error)
+    # 
+    # timeStepsPerHour = numpy.int(timeStepsPerHour * 3/2)
+    # 
+    # print('Error-Comparison Plot, timeStepsPerHour = '+str(timeStepsPerHour))
+    # 
+    # (S3, I3, R3) = setInitialPops(runLength, numPlaces, placePop, infectedFrac)
+    # 
+    # (S3, I3, R3) = ODEsolver.rungeKuttaIterator(S3, I3, R3, timeStepsPerHour, humanContactsPerHour[0][0] * infectionProbPerContact, recovRate, vaccinationChancePerHour, movementChances, movementChancesLD, places)
+    # 
+    # Plotter.plotThis22(S3[plotIndex], I3[plotIndex], R3[plotIndex], 'h = 3h: The Spread of the Plague in Area ' +places[plotIndex][0])
+    # plt.show()
+    # plt.clf()
+    # 
+    # print('Difference in values for endpoints in infected pop: between h and 2h' + str(numpy.abs( I[runLength - 1] - I2[runLength - 1] ) ))
+    # print('Difference in values for endpoints in infected pop: between 2h and 3h' + str(numpy.abs( I3[runLength - 1] - I2[runLength - 1] ) ))
+    # print('Difference in values for endpoints in infected pop: between h and 3h' + str(numpy.abs( I[runLength - 1] - I3[runLength - 1] ) ))
+    # 
+    #===========================================================================
     
     print('done')
     #ended
