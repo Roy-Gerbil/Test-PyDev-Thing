@@ -28,7 +28,7 @@ def ImgRestoreBasic(img): ##the basic method of restoring the image using the La
 ##MAIN
 
 if __name__ == '__main__':
-    originalImg = importfile('C:\File.jpg') ##the original image
+    originalImg = importfile('C:\File.jpg') ##the original image(s)
     damagedImg = maskImage(originalImg) ##image to be 'restored'
     
     
