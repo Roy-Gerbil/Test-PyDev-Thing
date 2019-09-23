@@ -17,6 +17,7 @@ import sys
 import DiscrepScore
 import MaskImage
 import ImgRestoreBasic
+import CreateMask
 
 ##MAIN
 
@@ -36,6 +37,6 @@ if __name__ == '__main__':
     print('Beginning with the simple method...')
     restoredImg = ImgRestoreBasic(damagedImg)
     
-    print('Discrepancy Score = ' + DiscrepScore.discrepScore(originalImg, restoredImg, damagedImg))
+    print('Discrepancy Score = ' + DiscrepScore.discrepScore(originalImg, restoredImg, damagedImg, MaskImage))
     print('End')
 pass   
