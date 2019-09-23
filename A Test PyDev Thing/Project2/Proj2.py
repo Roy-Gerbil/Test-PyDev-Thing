@@ -8,28 +8,27 @@ Created on Sep. 20, 2019
 
 import math
 import numpy
-
 import matplotlib.pyplot as plt
-import DiscrepScore
+import skimage.io
+import skimage.viewer
+import sys
 
 ##FUNCTIONS
-
-
-def maskImage(img): ##the basic method of restoring the image using the Laplace equation
-    
-
-    return img
-
-def ImgRestoreBasic(img): ##the basic method of restoring the image using the Laplace equation
-    
-
-    return img
+import DiscrepScore
+import MaskImage
+import ImgRestoreBasic
 
 ##MAIN
 
 if __name__ == '__main__':
-    originalImg = importfile('C:\File.jpg') ##the original image(s)
-    damagedImg = maskImage(originalImg) ##image to be 'restored'
+    
+    ###import image as greyscale, matrix of intensity values
+    #Intensity matrix
+    originalImg = skimage.io.imread('image.png',as_grey=True).astype(numpy.float32)
+    plt.imshow(originalImg, cmap='gray', interpolation='nearest');
+    plt.savefig('./Results/file.png')
+    
+    damagedImg = MaskImage.maskImage(originalImg) ##image to be 'restored'
     
     
     
@@ -37,20 +36,6 @@ if __name__ == '__main__':
     print('Beginning with the simple method...')
     restoredImg = ImgRestoreBasic(damagedImg)
     
-    print('Discrepancy Score = ' + DiscrepScore.get(originalImg, restoredImg, damagedImg))
+    print('Discrepancy Score = ' + DiscrepScore.discrepScore(originalImg, restoredImg, damagedImg))
     print('End')
-pass
-
-
-
-class MyClass(object):
-    '''
-    classdocs
-    '''
-
-
-    def __init__(self, params):
-        '''
-        Constructor
-        '''
-        
+pass   
