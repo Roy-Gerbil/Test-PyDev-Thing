@@ -10,7 +10,7 @@ def discrepScore(originalImg, restoredImg, damagedImg, maskforImg): ##obtain the
     ##find Imean
     for x in range(0, xvals):
         for y in range(0, yvals):
-            if( maskforImg[x][y] == 1 ): ##sum over the pixels of the mission region only
+            if( maskforImg[x][y] == 0 ): ##sum over the pixels of the mission region only
                 n = n + 1
                 Imean = Imean + originalImg[x][y]
                 
@@ -19,7 +19,7 @@ def discrepScore(originalImg, restoredImg, damagedImg, maskforImg): ##obtain the
     ##now, find chi squared
     for x in range(0, xvals):
         for y in range(0, yvals):
-            if( maskforImg[x][y] == 1 ): ##sum over the pixels of the mission region only
+            if( maskforImg[x][y] == 0 ): ##sum over the pixels of the mission region only
                 num = num + ( restoredImg[x][y] - originalImg[x][y] )**2
                 sigmasq = sigmasq + ( originalImg - Imean )**2
     

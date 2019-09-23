@@ -24,10 +24,12 @@ import CreateMask
 if __name__ == '__main__':
     
     ###import image as greyscale, matrix of intensity values
-    #Intensity matrix
+    #Intensity matrix, values from 0 (black) to 1 (white)
     originalImg = skimage.io.imread('image.png',as_grey=True).astype(numpy.float32)
     plt.imshow(originalImg, cmap='gray', interpolation='nearest');
     plt.savefig('./Results/file.png')
+    
+    maskforImage = CreateMask.createMask(originalImg, 1)
     
     damagedImg = MaskImage.maskImage(originalImg) ##image to be 'restored'
     
@@ -35,8 +37,8 @@ if __name__ == '__main__':
     
     ##start with simple method
     print('Beginning with the simple method...')
-    restoredImg = ImgRestoreBasic(damagedImg)
+    restoredImg = ImgRestoreBasic(damagedImg, maskforImage)
     
-    print('Discrepancy Score = ' + DiscrepScore.discrepScore(originalImg, restoredImg, damagedImg, MaskImage))
+    print('Discrepancy Score = ' + DiscrepScore.discrepScore(originalImg, restoredImg, damagedImg, maskforImage))
     print('End')
 pass   
