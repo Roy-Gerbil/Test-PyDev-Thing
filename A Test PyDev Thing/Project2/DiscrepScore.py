@@ -1,4 +1,4 @@
-def get(originalImg, restoredImg, damagedImg): ##obtain the chi squared discrapency between the restored image and the original image
+def discrepScore(originalImg, restoredImg, damagedImg): ##obtain the chi squared discrapency between the restored image and the original image
     xvals = originalImg.shape[0]
     yvals = originalImg.shape[1]
     
