@@ -1,6 +1,5 @@
 import random
 import numpy as np
-
 def R_float(start, stop, step = 10**(-17)): # Random generator between [0,1] unlike random.random() which is between [0,1). Note that the (10**-17) is to have the same step as the random.random has (i.e. as many decimals)
     return random.randint(0, int((stop - start) / step)) * step + start
     
@@ -53,7 +52,7 @@ def createMask(img, type,n): ##creates the mask of specified type for the image.
                 for p1 in range(0, img.shape[0]):
                     for p2 in range(0, img.shape[1]):
                         if( ((p1-c0y)**2) + ((p2-c0x)**2) <= r**2 ):
-                            mask[p1,p2] += random.randint(0,1) #+= R_float(start, stop, )
+                            mask[p1,p2] -= random.randint(0,1) #+= R_float(start, stop, )
                             if(mask[p1,p2] < 0 ):
                                 mask[p1,p2] = 0
                         
@@ -63,7 +62,7 @@ def createMask(img, type,n): ##creates the mask of specified type for the image.
                 for p1 in range(0, img.shape[0]):
                     for p2 in range(0, img.shape[1]):
                         if( ((p1-c0y)**2) + ((p2-c0x)**2) <= r**2 ):
-                            mask[p1,p2] += random.randint(0,1) #+= R_float(start, stop, )
+                            mask[p1,p2] -= random.randint(0,1) #+= R_float(start, stop, )
                             if(mask[p1,p2] < 0):
                                 mask[p1,p2] = 0            
             if(c0y < img.shape[0]/2 and c0x > img.shape[1]/2 ):  #Quadrant 4 
@@ -81,11 +80,11 @@ def createMask(img, type,n): ##creates the mask of specified type for the image.
             c0y = random.randint(0, img.shape[0]) 
             c0x = random.randint(0, img.shape[1])
             d = min(img.shape[0] , img.shape[1] )
-            r = random.randint(0 , np.int(d/14)) # Divided by four so that the radii are not to big. 
+            r = random.randint(0 , np.int(d/4)) # Divided by four so that the radii are not to big. 
             for p1 in range(0, img.shape[0]):
                 for p2 in range(0, img.shape[1]):
                     if( ((p1-c0y)**2) + ((p2-c0x)**2) <= r**2 ):
-                        mask[p1,p2] -=  1 #+= R_float(start, stop, )
+                        mask[p1,p2] -= random.randint(0,1) #+= R_float(start, stop, )
                         if(mask[p1,p2] < 0):
                             mask[p1,p2] = 0
 
