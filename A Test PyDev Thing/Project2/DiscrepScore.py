@@ -18,7 +18,7 @@ def discrepScore(originalImg, restoredImg, maskforImg): ##obtain the chi squared
     
     ##now, find chi squared
     for x in range(0, xvals):
-        print(x)
+        #print(x)
         for y in range(0, yvals):
             if( maskforImg[x,y] == 0 ): ##sum over the pixels of the mission region only
                 num = num + ( restoredImg[x,y] - originalImg[x,y] )**2
