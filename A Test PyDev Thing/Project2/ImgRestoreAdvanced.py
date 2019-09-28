@@ -67,10 +67,10 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                     L[x, y] = Ixx[x, y] + Iyy[x, y] ##2D smoothness estimation
                     Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
                     delL[x, y] = ( L[x+1, y] - L[x-1, y], L[x, y+1] - L[x, y-1]) ## a vector, x and y derivs of L (laplacian)
-                    B[x, y] = numpy.dot( delL[x, y], Ndir[x, y])#projection of delL onto Ndir
-                    if(B > 0):
+                    B[x, y] = numpy.dot( delL[x, y], Ndir[x, y] )#projection of delL onto Ndir
+                    if(B[x, y] > 0):
                         absGrad[x, y] = numpy.sqrt((min(I[x,y]-I[x-1,y], 0)**2) + (max(I[x+1,y]-I[x,y], 0)**2) + (min(I[x,y]-I[x,y-1], 0)**2) + (max(I[x,y+1]-I[x,y], 0)**2))
-                    elif(B < 0):
+                    elif(B[x, y] < 0):
                         absGrad[x, y] = numpy.sqrt((max(I[x,y]-I[x-1,y], 0)**2) + (min(I[x+1,y]-I[x,y], 0)**2) + (max(I[x,y]-I[x,y-1], 0)**2) + (min(I[x,y+1]-I[x,y], 0)**2)) 
 
                     It[x, y] = B[x, y] * absGrad[x, y] ## derivative in time
@@ -104,9 +104,9 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                     Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
                     delL[x, y] = ( L[x+1, y] - L[x-1, y], L[x, y+1] - L[x, y-1]) ## a vector, x and y derivs of L (laplacian)
                     B[x, y] = numpy.dot( delL[x, y], Ndir[x, y])#projection of delL onto Ndir
-                    if(B > 0):
+                    if(B[x, y] > 0):
                         absGrad[x, y] = numpy.sqrt((min(I[x,y]-I[x-1,y], 0)**2) + (max(I[x+1,y]-I[x,y], 0)**2) + (min(I[x,y]-I[x,y-1], 0)**2) + (max(I[x,y+1]-I[x,y], 0)**2))
-                    elif(B < 0):
+                    elif(B[x, y] < 0):
                         absGrad[x, y] = numpy.sqrt((max(I[x,y]-I[x-1,y], 0)**2) + (min(I[x+1,y]-I[x,y], 0)**2) + (max(I[x,y]-I[x,y-1], 0)**2) + (min(I[x,y+1]-I[x,y], 0)**2)) 
 
                     
