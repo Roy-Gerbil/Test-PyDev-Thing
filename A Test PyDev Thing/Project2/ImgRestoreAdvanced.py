@@ -4,19 +4,19 @@ def g(s):##perona-malik anisotropic diffusion function
     g = 1/(1+(s/K)**2)
     return g
 
-def boundary(I, mask):
-    Boundary = numpy.zeros((I.shape[0], I.shape[1], 4))
+def getBoundary(I, mask):
+    Boundary = numpy.zeros((I.shape[0], I.shape[1]))
     for x in range(0, I.shape[0]):
         for y in range(0, I.shape[1]):
             if (mask[x,y] == 0 and mask[x-1,y] == 1): # Left
-                Boundary[x,y,0] = 1
+                Boundary[x,y] = 1
             if (mask[x,y] == 0 and mask[x+1,y] == 1): # Right 
-                Boundary[x,y,1] = 2
+                Boundary[x,y] = 2
             if (mask[x,y] == 0 and mask[x,y-1] == 1): # Top
-                Boundary[x,y,2] = 3
+                Boundary[x,y] = 3
             if (mask[x,y] == 0 and mask[x,y+1] == 1): # Bottom
-                Boundary[x,y,3] = 4
-                return(Boundary)
+                Boundary[x,y] = 4
+    return(Boundary)
 
 def restore(I, mask): ##navier-stokes method of restoring the image, takes the image to restore and the mask that was applied
     ###The method used involved successive iteration over the masked part of the image (mask[x,y] == 0)
@@ -33,6 +33,7 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
     diffusion = numpy.zeros(I.shape)
     absGrad = numpy.zeros(I.shape)
     gArray = numpy.zeros(I.shape)
+    boundary = getBoundary(I, mask)
     
     tempI = I ##for iteration, after each step newI is set to I
     dt = 0.1 #timestep
@@ -44,6 +45,7 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
         for A in range(0, 15): ## the inpainting loop
             print('A = ' +numpy.str(A))
             for x in range(0, I.shape[0]):
+                print(x)
                 for y in range(0, I.shape[1]):
                     
                     Ix[x,y] = (I[x+1,y] + I[x-1,y])/2
@@ -51,16 +53,16 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                     Ixx[x,y] = (I[x+1,y] - 2*I[x,y] + I[x-1,y])
                     Iyy[x,y] = (I[x,y+1] - 2*I[x,y] + I[x,y-1])
                     
-                    if(boundary(I,mask)[x,y,2] == 3): # and boundary(i,mask)[x,y,3] != Bottom  ):
+                    if(boundary[x,y] == 3): # and boundary(i,mask)[x,y,3] != Bottom  ):
                         Iy[x,y] = (-3*I[x,y] + 4*I[x,y+1]-I[x,y+2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y+1] + 4*I[x,y+2]-I[x,y+3])
-                    if(boundary(I,mask)[x,y,3] == 4): # and boundary(i,mask)[x,y,2] != Top  ):
+                    if(boundary[x,y] == 4): # and boundary(i,mask)[x,y,2] != Top  ):
                         Iy[x,y] = (3*I[x,y] - 4*I[x,y-1]+I[x,y-2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y-1] + 4*I[x,y-2]-I[x,y-3])
-                    if(boundary(I,mask)[x,y,1] == 2): # and boundary(i,mask)[x,y,0] != Right):
+                    if(boundary[x,y] == 2): # and boundary(i,mask)[x,y,0] != Right):
                         Ix[x,y] = (-3*I[x,y] + 4*I[x+1,y]-I[x+2,y])/2
                         Ixx[x,y] = (2*I[x,y] - 5*I[x+1,y] + 4*I[x+2,y]-I[x+3,y])
-                    if(boundary(I,mask)[x,y,0] == 1): #and boundary(i,mask)[x,y,1] != Left ):
+                    if(boundary[x,y] == 1): #and boundary(i,mask)[x,y,1] != Left ):
                         Ix[x,y] = (3*I[x,y] - 4*I[x-1,y]+I[x-2,y])/2
                         Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y])
                                      
@@ -68,11 +70,12 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                     Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
                     delL[x, y] = ( L[x+1, y] - L[x-1, y], L[x, y+1] - L[x, y-1]) ## a vector, x and y derivs of L (laplacian)
                     B[x, y] = numpy.dot( delL[x, y], Ndir[x, y] )#projection of delL onto Ndir
+                    
                     if(B[x, y] > 0):
                         absGrad[x, y] = numpy.sqrt((min(I[x,y]-I[x-1,y], 0)**2) + (max(I[x+1,y]-I[x,y], 0)**2) + (min(I[x,y]-I[x,y-1], 0)**2) + (max(I[x,y+1]-I[x,y], 0)**2))
                     elif(B[x, y] < 0):
                         absGrad[x, y] = numpy.sqrt((max(I[x,y]-I[x-1,y], 0)**2) + (min(I[x+1,y]-I[x,y], 0)**2) + (max(I[x,y]-I[x,y-1], 0)**2) + (min(I[x,y+1]-I[x,y], 0)**2)) 
-
+                    
                     It[x, y] = B[x, y] * absGrad[x, y] ## derivative in time
                     ##here multiply B by a slop-limited version of the norm of the gradient of the image
                     
@@ -87,16 +90,16 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
             for x in range(0, I.shape[0]):
                 for y in range(0, I.shape[1]):
                     
-                    if(boundary(I,mask)[x,y,2] == 3): # and boundary(i,mask)[x,y,3] != Bottom  ):
+                    if(boundary[x,y] == 3): # and boundary(i,mask)[x,y,3] != Bottom  ):
                         Iy[x,y] = (-3*I[x,y] + 4*I[x,y+1]-I[x,y+2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y+1] + 4*I[x,y+2]-I[x,y+3])
-                    if(boundary(I,mask)[x,y,3] == 4): # and boundary(i,mask)[x,y,2] != Top  ):
+                    if(boundary[x,y] == 4): # and boundary(i,mask)[x,y,2] != Top  ):
                         Iy[x,y] = (3*I[x,y] - 4*I[x,y-1]+I[x,y-2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y-1] + 4*I[x,y-2]-I[x,y-3])
-                    if(boundary(I,mask)[x,y,1] == 2): # and boundary(i,mask)[x,y,0] != Right):
+                    if(boundary[x,y] == 2): # and boundary(i,mask)[x,y,0] != Right):
                         Ix[x,y] = (-3*I[x,y] + 4*I[x+1,y]-I[x+2,y])/2
                         Ixx[x,y] = (2*I[x,y] - 5*I[x+1,y] + 4*I[x+2,y]-I[x+3,y])
-                    if(boundary(I,mask)[x,y,0] == 1): #and boundary(i,mask)[x,y,1] != Left ):
+                    if(boundary[x,y] == 1): #and boundary(i,mask)[x,y,1] != Left ):
                         Ix[x,y] = (3*I[x,y] - 4*I[x-1,y]+I[x-2,y])/2
                         Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y])
                                     
