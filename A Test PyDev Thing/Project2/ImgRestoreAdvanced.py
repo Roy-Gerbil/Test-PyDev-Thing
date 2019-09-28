@@ -4,7 +4,7 @@ def restore(I, mask): ##a navier-stokes method of restoring the image, takes the
     
     ##first calculate 2D smoothness estimation L
     
-    It[x, y] = (delL[x+1, y] . Ndir) |gradI[x,y]| ## derivative in time
+    It[x, y] = numpy.dot(delL[x, y], Ndir[x, y]) * |gradI[x, y]| ## derivative in time
     
     delL[x, y] = ( L[x+1, y] - L[x-1, y], L[x, y+1] - L[x, y-1]) ## a vector, x and y derivs of L (laplacian)
     
@@ -12,7 +12,16 @@ def restore(I, mask): ##a navier-stokes method of restoring the image, takes the
     
     Ndir = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
     
-    B = #projection of delL onto Ndir
+    B = numpy.dot( delL[x, y], Ndir[x, y])#projection of delL onto Ndir
+    
+    if(B > 0):
+        absGrad = numpy.sqrt(  )
+    elif(B < 0):
+        absGrad = numpy.sqrt(  )
+    else:
+        absGrad = 0 ##? maybe
+    
+    
     
     delt = 0.1 #timestep?
     Ttimes = 100 ##number of iterations
@@ -20,13 +29,13 @@ def restore(I, mask): ##a navier-stokes method of restoring the image, takes the
         for x in range(0, img.shape[0]):
             for y in range(0, img.shape[1]):
                 if(mask[x,y] == 0):
-                    img[x, y] = imgTemp[x, y] + delt * imgTemp[x, y]
+                    I[x, y] = imgTemp[x, y] + delt * It[x, y]
     
     
     
     
     
-    return img
+    return I
 
 def g(s):##perona-malik anisotropic diffusion function
     K = 10**-12 ##diffusion parameter
