@@ -8,15 +8,15 @@ def boundary(I, mask):
     Boundary = numpy.zeros((I.shape[0], I.shape[1], 4))
     for x in range(0, I.shape[0]):
         for y in range(0, I.shape[1]):
-            if (mask[x,y] -  mask[x+1,y] > 0): # checking if a point is right boundary
-                Boundary[x,y,0] = 'Right'
-            if (mask[x,y] -  mask[x-1,y] > 0): # checking if a point is left boundary
-                Boundary[x,y,1] = 'Left'
-            if (mask[x,y] -  mask[x,y-1] > 0):
-                Boundary[x,y,2] = 'Top'
-            if (mask[x,y] -  mask[x,y+1] > 0):
-                Boundary[x,y,3] = 'Bottom'
-    return(Boundary)
+            if (mask[x,y] == 0 and mask[x-1,y] == 1): # Left
+                Boundary[x,y,0] = 1
+            if (mask[x,y] == 0 and mask[x+1,y] == 1): # Right 
+                Boundary[x,y,1] = 2
+            if (mask[x,y] == 0 and mask[x,y-1] == 1): # Top
+                Boundary[x,y,2] = 3
+            if (mask[x,y] == 0 and mask[x,y+1] == 1): # Bottom
+                Boundary[x,y,3] = 4
+                return(Boundary)
 
 def restore(I, mask): ##navier-stokes method of restoring the image, takes the image to restore and the mask that was applied
     ###The method used involved successive iteration over the masked part of the image (mask[x,y] == 0)
@@ -51,18 +51,18 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                     Ixx[x,y] = (I[x+1,y] - 2*I[x,y] + I[x-1,y])
                     Iyy[x,y] = (I[x,y+1] - 2*I[x,y] + I[x,y-1])
                     
-                    if(boundary(I,mask)[x,y,2] == 'Top'): # and boundary(i,mask)[x,y,3] != Bottom  ):
+                    if(boundary(I,mask)[x,y,2] == 3): # and boundary(i,mask)[x,y,3] != Bottom  ):
                         Iy[x,y] = (-3*I[x,y] + 4*I[x,y+1]-I[x,y+2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y+1] + 4*I[x,y+2]-I[x,y+3])
-                    if(boundary(I,mask)[x,y,3] == 'Bottom'): # and boundary(i,mask)[x,y,2] != Top  ):
+                    if(boundary(I,mask)[x,y,3] == 4): # and boundary(i,mask)[x,y,2] != Top  ):
                         Iy[x,y] = (3*I[x,y] - 4*I[x,y-1]+I[x,y-2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y-1] + 4*I[x,y-2]-I[x,y-3])
-                    if(boundary(I,mask)[x,y,1] == 'Left'): # and boundary(i,mask)[x,y,0] != Right):
+                    if(boundary(I,mask)[x,y,1] == 2): # and boundary(i,mask)[x,y,0] != Right):
                         Ix[x,y] = (-3*I[x,y] + 4*I[x+1,y]-I[x+2,y])/2
-                        Ixx[x,y] = (2*I[x,y] - 5*I[x+1,y] + 4*I[x+2,y]-I[x+3,y]  
-                    if(boundary(I,mask)[x,y,0] == 'Right'): #and boundary(i,mask)[x,y,1] != Left ):
+                        Ixx[x,y] = (2*I[x,y] - 5*I[x+1,y] + 4*I[x+2,y]-I[x+3,y])
+                    if(boundary(I,mask)[x,y,0] == 1): #and boundary(i,mask)[x,y,1] != Left ):
                         Ix[x,y] = (3*I[x,y] - 4*I[x-1,y]+I[x-2,y])/2
-                        Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y]
+                        Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y])
                                      
                     L[x, y] = Ixx[x, y] + Iyy[x, y] ##2D smoothness estimation
                     Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
@@ -87,18 +87,18 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
             for x in range(0, I.shape[0]):
                 for y in range(0, I.shape[1]):
                     
-                    if(boundary(I,mask)[x,y,2] == 'Top'): # and boundary(i,mask)[x,y,3] != Bottom  ):
+                    if(boundary(I,mask)[x,y,2] == 3): # and boundary(i,mask)[x,y,3] != Bottom  ):
                         Iy[x,y] = (-3*I[x,y] + 4*I[x,y+1]-I[x,y+2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y+1] + 4*I[x,y+2]-I[x,y+3])
-                    if(boundary(I,mask)[x,y,3] == 'Bottom'): # and boundary(i,mask)[x,y,2] != Top  ):
+                    if(boundary(I,mask)[x,y,3] == 4): # and boundary(i,mask)[x,y,2] != Top  ):
                         Iy[x,y] = (3*I[x,y] - 4*I[x,y-1]+I[x,y-2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y-1] + 4*I[x,y-2]-I[x,y-3])
-                    if(boundary(I,mask)[x,y,1] == 'Left'): # and boundary(i,mask)[x,y,0] != Right):
+                    if(boundary(I,mask)[x,y,1] == 2): # and boundary(i,mask)[x,y,0] != Right):
                         Ix[x,y] = (-3*I[x,y] + 4*I[x+1,y]-I[x+2,y])/2
-                        Ixx[x,y] = (2*I[x,y] - 5*I[x+1,y] + 4*I[x+2,y]-I[x+3,y]  
-                    if(boundary(I,mask)[x,y,0] == 'Right'): #and boundary(i,mask)[x,y,1] != Left ):
+                        Ixx[x,y] = (2*I[x,y] - 5*I[x+1,y] + 4*I[x+2,y]-I[x+3,y])
+                    if(boundary(I,mask)[x,y,0] == 1): #and boundary(i,mask)[x,y,1] != Left ):
                         Ix[x,y] = (3*I[x,y] - 4*I[x-1,y]+I[x-2,y])/2
-                        Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y]
+                        Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y])
                                     
                     L[x, y] = Ixx[x, y] + Iyy[x, y] ##2D smoothness estimation
                     Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
@@ -121,9 +121,5 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
             print('Max delta = ' + numpy.str(maxDelta))
             print('Max It = ' + (numpy.abs(It)).max())
             tempI = I
-    
-    
-    
-    
     
     return I
