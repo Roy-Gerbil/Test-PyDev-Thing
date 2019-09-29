@@ -131,7 +131,7 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
             looping = False
         else:
             print('Max delta = ' + numpy.str(maxDelta))
-            print('Max It = ' + (numpy.abs(It)).max())
+            print('Max It = ' + numpy.str((numpy.abs(It)).max()))
             tempI = I
             
         if(Ttimes == 100):
