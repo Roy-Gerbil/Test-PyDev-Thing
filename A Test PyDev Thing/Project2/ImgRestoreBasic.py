@@ -16,7 +16,7 @@ def restore(img, mask, relax): ##the basic method of restoring the image using t
                         print('d = '+ numpy.str(d))
                         for xd in range(0, d):
                             for yd in range(0, d):
-                                if not( (x+xd) > img.shape[0]-1 or (y+yd) > img.shape[1]-1 or (x+ xd) < 0 or (y+yd) < 0 or mask[x+xd,y+yd] == 0 ):
+                                if not( (x+xd) > img.shape[0]-1 or (y+yd) > img.shape[1]-1 or (x+xd) < 0 or (y+yd) < 0 or mask[x+xd,y+yd] == 0 ):
                                     rest[x+1,y+1] = img[x+xd, y+yd] ##initial guess of intensity equal to the nearest bounday's intensity... more or less
                                     d = -1
                                     break
@@ -55,7 +55,7 @@ def restore(img, mask, relax): ##the basic method of restoring the image using t
                             rest[x+1+xd,y+1+yd] = img[x+xd, y+yd]
     print('Restoration...')
     looping = True ##looping until convergence condition is satisfied
-    EPS = 5.13121*10**-4 ##when the largest difference between two points after a sweep is lower than this, convergence is satisfied
+    EPS = 5.13121*10**-5 ##when the largest difference between two points after a sweep is lower than this, convergence is satisfied
     while looping:
         restTemp = rest + 0##to store the values of the previous sweep, each sweep
         for x in range(0, mask.shape[0]):
