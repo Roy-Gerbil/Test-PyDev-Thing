@@ -24,8 +24,8 @@ if __name__ == '__main__':
     ###import image as greyscale, matrix of intensity values
     #Intensity matrix, values from 0 (black) to 1 (white)
     originalImg = skimage.io.imread('falco.png',as_gray=True).astype(numpy.float32)
-    maskforImage = CreateMask.createMask(originalImg, 'WCCG', 7) ##creates the mask for the image
-    #maskforImage = skimage.io.imread('testmask.png',as_gray=True).astype(numpy.float32)
+    #maskforImage = CreateMask.createMask(originalImg, 'WCCG', 7) ##creates the mask for the image
+    maskforImage = skimage.io.imread('falcomask.png',as_gray=True).astype(numpy.float32)
     damagedImg = originalImg * maskforImage ##image to be 'restored'
     
     plt.imshow(originalImg, cmap='gray', interpolation='nearest');

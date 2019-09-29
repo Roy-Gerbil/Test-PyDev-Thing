@@ -69,5 +69,8 @@ def diffusify(I, bounds, n, boundary, mask): ##applies the diffusion to the area
             for y in range(0, I.shape[1]):
                 if(mask[x,y] == 0): ##only actually update pixels inside the mask
                     I[x, y] = I[x, y] + dt*diffusion[x, y]
-    
+                    if(I[x, y] < 0):
+                        I[x, y] = 0
+                    elif(I[x, y] > 1):
+                        I[x, y] = 1
     return I

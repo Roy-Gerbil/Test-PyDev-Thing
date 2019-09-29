@@ -59,17 +59,18 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
     Ixx = numpy.zeros(I.shape)
     Iyy = numpy.zeros(I.shape)
     absGrad = numpy.zeros(I.shape)
+    tempI = numpy.zeros(I.shape)##for iteration, after each step tempI is set to I
     
     bounds = getBounds(mask)
     boundary = getBoundary(I, bounds)
     
-    
-    tempI = I ##for iteration, after each step newI is set to I
+
     dt = 0.1 #timestep
     Ttimes = 0 ##number of iterations, if using this stop condition
     EPS = 4 * 10**-5 ##largest pixel difference between steps before stopping, if using this stop condition
     looping = True
     while looping: ##restoration loop, A steps of inpainting, B steps of diffusion, and so on until the stop condition
+        tempI[:,:] = I
         Ttimes += 1
         for A in range(0, 15): ## the inpainting loop
             print('A = ' +numpy.str(A))
@@ -118,6 +119,10 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                         ##here multiply B by a slop-limited version of the norm of the gradient of the image
                         
                         I[x, y] = I[x, y] + dt * It[x, y]
+                        if(I[x, y] < 0):
+                            I[x, y] = 0
+                        elif(I[x, y] > 1):
+                            I[x, y] = 1
                         
         I = ApplyDiffusion.diffusify(I, bounds, 2, boundary, mask) ##the image, area to be diffused, number of diffusion steps, and boundary as above
                    
@@ -128,11 +133,11 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
         ##check if still looping
         maxDelta = (numpy.abs(I - tempI)).max() 
         if( maxDelta < EPS):
+            print('Max delta = ' + numpy.str(maxDelta))
             looping = False
         else:
             print('Max delta = ' + numpy.str(maxDelta))
             print('Max It = ' + numpy.str((numpy.abs(It)).max()))
-            tempI = I
             
         if(Ttimes == 100):
             looping = False
