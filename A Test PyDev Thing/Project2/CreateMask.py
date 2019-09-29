@@ -14,7 +14,7 @@ def createMask(img, type,n): ##creates the mask of specified type for the image.
                 
     if (type == "RCG"):   #  Random Computer Generated mask. Has random values between 0 (black) and 1 (white) for different pixels. 
         for p1 in range(5, img.shape[0]-5):
-            for p2 in range(, img.shape[1]): 
+            for p2 in range(5, img.shape[1]-5): 
                 mask[p1,p2] -= random.random() # Problem with this is that it only takes values less than 1, not equal to 1. If 1 should be indluded use code below. 
                 #mask[p1,p2] -= R_float(start, stop, )
                 
@@ -26,7 +26,7 @@ def createMask(img, type,n): ##creates the mask of specified type for the image.
             bt = img.shape[1] - random.randint(0, img.shape[1]) + b0 # Creating random block. at is the finishing pixel chosen at random for x-dimension
             
             for p1 in range(5, img.shape[0]-5):
-                for p2 in range(0, img.shape[1]-5):
+                for p2 in range(5, img.shape[1]-5):
                     if( a0 <= p1 <= at  and b0 <= p2 <= bt):
                         mask[p1,p2] -= random.randint(0,1) # + 1  # the random int gives random spread for the blocks whereas + 1 gives one solid block
                         if(mask[p1,p2] < 0):

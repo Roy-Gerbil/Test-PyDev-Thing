@@ -4,7 +4,7 @@ def g(s):##perona-malik anisotropic diffusion function
     g = 1/(1+(s/K)**2)
     return g
 
-def diffusify(I, bounds, n, boundary): ##applies the diffusion to the area of the mask, n times
+def diffusify(I, bounds, n, boundary, mask): ##applies the diffusion to the area of the mask, n times
     
     L = numpy.zeros(I.shape)
     Ndir = numpy.zeros((I.shape[0], I.shape[1], 2))
@@ -24,7 +24,7 @@ def diffusify(I, bounds, n, boundary): ##applies the diffusion to the area of th
         
         for x in range(0, I.shape[0]):
             for y in range(0, I.shape[1]):
-                if(x > bounds[0, 0] and x < bounds[0, 1] and y > bounds[1, 0] and y < bounds[1, 1]):
+                if(bounds[x, y] == 0):
                 
                     if(boundary[x,y] == 1 or boundary[x,y] == 5 or boundary[x,y] == 6): #Left
                         Ix[x,y] = (3*I[x,y] - 4*I[x-1,y]+I[x-2,y])/2
@@ -45,11 +45,15 @@ def diffusify(I, bounds, n, boundary): ##applies the diffusion to the area of th
                     else: #Center
                         Iy[x,y] = (I[x,y+1] + I[x,y-1])/2
                         Iyy[x,y] = (I[x,y+1] - 2*I[x,y] + I[x,y-1])
-                                    
+                    
                     L[x, y] = Ixx[x, y] + Iyy[x, y] ##2D smoothness estimation
-                    Ndir[x, y] = numpy.array((-Iy[x, y], Ix[x, y])) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
-                    delL[x, y] = ( (L[x+1, y] - L[x-1, y]), (L[x, y+1] - L[x, y-1])) ## a vector, x and y derivs of L (laplacian)
-                    B[x, y] = numpy.dot( delL[x, y], Ndir[x, y])#projection of delL onto Ndir
+        for x in range(0, I.shape[0]):
+            for y in range(0, I.shape[1]):
+                if(mask[x,y] == 0): ##only actually update pixels inside the mask
+                    delL[x, y] = ( L[x+1, y] - L[x-1, y], L[x, y+1] - L[x, y-1]) ## a vector, x and y derivs of L (laplacian)
+                    Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
+                    print(numpy.dot( delL[x, y], Ndir[x, y] ))
+                    B[x, y] = numpy.dot( delL[x, y], Ndir[x, y] )#projection of delL onto Ndir
                     if(B[x, y] > 0):
                         absGrad[x, y] = numpy.sqrt((min(I[x,y]-I[x-1,y], 0)**2) + (max(I[x+1,y]-I[x,y], 0)**2) + (min(I[x,y]-I[x,y-1], 0)**2) + (max(I[x,y+1]-I[x,y], 0)**2))
                     elif(B[x, y] < 0):
