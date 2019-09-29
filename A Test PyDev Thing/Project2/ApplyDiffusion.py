@@ -62,8 +62,11 @@ def diffusify(I, bounds, n, boundary, mask): ##applies the diffusion to the area
                     elif(B[x, y] < 0):
                         absGrad[x, y] = numpy.sqrt((max(I[x,y]-I[x-1,y], 0)**2) + (min(I[x+1,y]-I[x,y], 0)**2) + (max(I[x,y]-I[x,y-1], 0)**2) + (min(I[x,y+1]-I[x,y], 0)**2)) 
     
+                    if(B[x, y] == 0):
+                        gArray[x, y] = 0
+                    else:
+                        gArray[x, y] = g(absGrad[x, y])
                     
-                    gArray[x, y] = g(absGrad[x, y])
         diffusion = 1/dt * (numpy.gradient( gArray * Ix )[0] + numpy.gradient( gArray * Iy )[1])
         for x in range(0, I.shape[0]):
             for y in range(0, I.shape[1]):
