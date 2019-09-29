@@ -23,6 +23,42 @@ def getBoundary(I, mask):
                 Boundary[x,y] = 8
     return(Boundary)
 
+def getBounds(mask):
+    bounds = numpy.zeros((2,2)) ###[x0, xf][y0, yf]
+    for x in range(0, mask.shape[0]):
+            for y in range(0, mask.shape[1]):
+                if(mask[x, y] == 0):
+                    bounds[0, 0] = x - 3
+                    break
+            else:
+                continue
+            break
+    for x in range(0, mask.shape[0]):
+            for y in range(0, mask.shape[1]):
+                if(mask[mask.shape[0]-1-x, y] == 0):
+                    bounds[0, 1] = mask.shape[0]-1-x + 3
+                    break
+            else:
+                continue
+            break
+    for y in range(0, mask.shape[1]):
+            for x in range(0, mask.shape[0]):
+                if(mask[x, y] == 0):
+                    bounds[1, 0] = y - 3
+                    break
+            else:
+                continue
+            break
+    for y in range(0, mask.shape[1]):
+            for x in range(0, mask.shape[0]):
+                if(mask[mask.shape[0]-1-x, y] == 0):
+                    bounds[1, 1] = mask.shape[1]-1-y + 3
+                    break
+            else:
+                continue
+            break
+    return bounds
+
 def restore(I, mask): ##navier-stokes method of restoring the image, takes the image to restore and the mask that was applied
     ###The method used involved successive iteration over the masked part of the image (mask[x,y] == 0)
     
@@ -36,7 +72,9 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
     Ixx = numpy.zeros(I.shape)
     Iyy = numpy.zeros(I.shape)
     absGrad = numpy.zeros(I.shape)
+    
     boundary = getBoundary(I, mask)
+    bounds = getBounds(mask)
     
     tempI = I ##for iteration, after each step newI is set to I
     dt = 0.1 #timestep
@@ -87,7 +125,7 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                     if(mask[x,y] == 0): ##only actually update pixels inside the mask
                         I[x, y] = I[x, y] + dt * It[x, y]
                         
-        I = ApplyDiffusion.diffusify(I, mask, 2, boundary) ##the image, area to be diffused, number of diffusion steps, and boundary as above
+        I = ApplyDiffusion.diffusify(I, bounds, 2, boundary) ##the image, area to be diffused, number of diffusion steps, and boundary as above
                     
         ##check if still looping
         maxDelta = (numpy.abs(I - tempI)).max() 
