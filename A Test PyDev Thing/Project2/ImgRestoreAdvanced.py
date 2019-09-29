@@ -103,7 +103,8 @@ def restore(I, mask): ##navier-stokes method of restoring the image, takes the i
                 for y in range(0, I.shape[1]):
                     if(mask[x,y] == 0): ##only actually update pixels inside the mask
                         delL[x, y] = ( L[x+1, y] - L[x-1, y], L[x, y+1] - L[x, y-1]) ## a vector, x and y derivs of L (laplacian)
-                        Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
+                        if( Iy[x, y] == 0 and Ix[x, y] == 0):
+                            Ndir[x, y] = ( -Iy[x, y], Ix[x, y]) / (numpy.sqrt( (Ix[x, y])**2 + (Iy[x, y])**2 )) ##N[x,y,n]/|N[x,y,n]|, also a vector, is the isophote direction
                         B[x, y] = numpy.dot( delL[x, y], Ndir[x, y] )#projection of delL onto Ndir
                         
                         if(B[x, y] > 0):
