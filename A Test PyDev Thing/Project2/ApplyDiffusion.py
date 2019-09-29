@@ -19,8 +19,8 @@ def diffusify(I, bounds, n, boundary, mask): ##applies the diffusion to the area
     gArray = numpy.zeros(I.shape)
     
     dt = 0.1 ##timestep
-    for B in range(0, n): ##the diffusion loop
-        print('B = ' +numpy.str(B))
+    for C in range(0, n): ##the diffusion loop
+        print('C = ' +numpy.str(C))
         
         for x in range(0, I.shape[0]):
             for y in range(0, I.shape[1]):
