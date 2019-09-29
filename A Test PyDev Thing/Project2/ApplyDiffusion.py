@@ -65,6 +65,9 @@ def diffusify(I, bounds, n, boundary, mask): ##applies the diffusion to the area
                     
                     gArray[x, y] = g(absGrad[x, y])
         diffusion = 1/dt * (numpy.gradient( gArray * Ix )[0] + numpy.gradient( gArray * Iy )[1])
-        I = I + dt*diffusion     
+        for x in range(0, I.shape[0]):
+            for y in range(0, I.shape[1]):
+                if(mask[x,y] == 0): ##only actually update pixels inside the mask
+                    I[x, y] = I[x, y] + dt*diffusion[x, y]
     
     return I
