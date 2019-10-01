@@ -33,7 +33,6 @@ def initialize(I, mask): ##get initial values for Image
 
 def inpaint(I, f, T, i, j): ##inpaints the pixel at [i, j] using nearby points
     Ia = 0
-    Inew = I[i, j]
     s = 0
     gradI = numpy.array([0, 0])
     d = 4 ##distance to grab points with information to use to inpaint
@@ -41,7 +40,7 @@ def inpaint(I, f, T, i, j): ##inpaints the pixel at [i, j] using nearby points
         for y in range(j-d, j+d+1):
             if(x == i and y == j):
                 pass
-            elif(f[x, y] == 1):
+            elif(f[x, y] != 2):
                 k = x
                 l = y
                 r = numpy.array((k-i, l-j))
