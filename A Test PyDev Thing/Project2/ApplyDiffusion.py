@@ -1,6 +1,6 @@
 import numpy
 def g(s):##perona-malik anisotropic diffusion function
-    K = 10**-12 ##diffusion parameter
+    K = 0.01 ##diffusion parameter
     g = 1/(1+(s/K)**2)
     return g
 
@@ -17,40 +17,50 @@ def diffusify(I, bounds, n, boundary, mask): ##applies the diffusion to the area
     diffusion = numpy.zeros(I.shape)
     absGrad = numpy.zeros(I.shape)
     gArray = numpy.zeros(I.shape)
+    Itemp = numpy.zeros(I.shape)
     
     dt = 0.1 ##timestep
     for C in range(0, n): ##the diffusion loop
         print('C = ' +numpy.str(C))
+        
+        Itemp[:,:] = I
+        grad = numpy.gradient(I)
+        
+        
+        
+        
+        
         
         for x in range(0, I.shape[0]):
             for y in range(0, I.shape[1]):
                 if(bounds[x, y] == 0):
                 
                     if(boundary[x,y] == 1 or boundary[x,y] == 5 or boundary[x,y] == 6): #Left
-                        Ix[x,y] = (3*I[x,y] - 4*I[x-1,y]+I[x-2,y])/2
-                        Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y])
-                    elif(boundary[x,y] == 2 or boundary[x,y] == 7 or boundary[x,y] == 8): #Right
                         Ix[x,y] = (-3*I[x,y] + 4*I[x+1,y]-I[x+2,y])/2
                         Ixx[x,y] = (2*I[x,y] - 5*I[x+1,y] + 4*I[x+2,y]-I[x+3,y])
+                    elif(boundary[x,y] == 2 or boundary[x,y] == 7 or boundary[x,y] == 8): #Right
+                        Ix[x,y] = (3*I[x,y] - 4*I[x-1,y]+I[x-2,y])/2
+                        Ixx[x,y] = (2*I[x,y] - 5*I[x-1,y] + 4*I[x-2,y]-I[x-3,y])
                     else: #Center
                         Ix[x,y] = (I[x+1,y] + I[x-1,y])/2
                         Ixx[x,y] = (I[x+1,y] - 2*I[x,y] + I[x-1,y])
                         
                     if(boundary[x,y] == 3 or boundary[x,y] == 5 or boundary[x,y] == 7): #Top
-                        Iy[x,y] = (-3*I[x,y] + 4*I[x,y+1]-I[x,y+2])/2
-                        Iyy[x,y] = (2*I[x,y] - 5*I[x,y+1] + 4*I[x,y+2]-I[x,y+3])
-                    elif(boundary[x,y] == 4 or boundary[x,y] == 6 or boundary[x,y] == 8): #Bottom
                         Iy[x,y] = (3*I[x,y] - 4*I[x,y-1]+I[x,y-2])/2
                         Iyy[x,y] = (2*I[x,y] - 5*I[x,y-1] + 4*I[x,y-2]-I[x,y-3])
+                    elif(boundary[x,y] == 4 or boundary[x,y] == 6 or boundary[x,y] == 8): #Bottom
+                        Iy[x,y] = (-3*I[x,y] + 4*I[x,y+1]-I[x,y+2])/2
+                        Iyy[x,y] = (2*I[x,y] - 5*I[x,y+1] + 4*I[x,y+2]-I[x,y+3])
                     else: #Center
                         Iy[x,y] = (I[x,y+1] + I[x,y-1])/2
                         Iyy[x,y] = (I[x,y+1] - 2*I[x,y] + I[x,y-1])
                     
                     L[x, y] = Ixx[x, y] + Iyy[x, y] ##2D smoothness estimation
+        Lgrad = numpy.gradient(L)
         for x in range(0, I.shape[0]):
             for y in range(0, I.shape[1]):
                 if(mask[x,y] == 0): ##only actually update pixels inside the mask
-                    delL[x, y] = ( L[x+1, y] - L[x-1, y], L[x, y+1] - L[x, y-1]) ## a vector, x and y derivs of L (laplacian)
+                    delL[x, y] = ( Lgrad[0][x, y], Lgrad[1][x, y]) ## a vector, x and y derivs of L (laplacian)
                     if( Iy[x, y] == 0 and Ix[x, y] == 0):
                         Ndir[x, y] = 0
                     else:

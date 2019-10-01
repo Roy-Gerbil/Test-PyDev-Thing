@@ -39,39 +39,39 @@ def createMask(img, type,n): ##creates the mask of specified type for the image.
             #Creating a random radius for the circle while not exceeding the map (This must be done separately for all the four quadrants)
             if(c0y > img.shape[0]/2 and c0x > img.shape[1]/2 ): #Quadrant 1 
                 d = min((img.shape[0] - c0y), (img.shape[1] -c0x))
-                r = random.randint(0 , d)
+                r = random.randint(0 , np.int(d/6))
                 for p1 in range(5, img.shape[0]-5):
                     for p2 in range(5, img.shape[1]-5):
                         if( ((p1-c0y)**2) + ((p2-c0x)**2) <= r**2 ):
-                            mask[p1,p2] -= random.randint(0,1) #+= R_float(start, stop, )
+                            mask[p1,p2] -= 1 #+= R_float(start, stop, )
                             if(mask[p1,p2] < 0):
                                 mask[p1,p2] = 0
             if(c0y > img.shape[0]/2 and c0x < img.shape[1]/2 ): #Quadrant 2 
                 d = min((img.shape[0] - c0y), (c0x))
-                r = random.randint(0 , d)
+                r = random.randint(0 , np.int(d/6))
                 for p1 in range(5, img.shape[0]-5):
                     for p2 in range(5, img.shape[1]-5):
                         if( ((p1-c0y)**2) + ((p2-c0x)**2) <= r**2 ):
-                            mask[p1,p2] -= random.randint(0,1) #+= R_float(start, stop, )
+                            mask[p1,p2] -= 1 #+= R_float(start, stop, )
                             if(mask[p1,p2] < 0 ):
                                 mask[p1,p2] = 0
                         
             if(c0y < img.shape[0]/2 and c0x < img.shape[1]/2 ):  # Quadrant 3
                 d = min(( c0y), (c0x))
-                r = random.randint(0 , d)
+                r = random.randint(0 , np.int(d/6))
                 for p1 in range(5, img.shape[0]-5):
                     for p2 in range(5, img.shape[1]-5):
                         if( ((p1-c0y)**2) + ((p2-c0x)**2) <= r**2 ):
-                            mask[p1,p2] -= random.randint(0,1) #+= R_float(start, stop, )
+                            mask[p1,p2] -= 1 #+= R_float(start, stop, )
                             if(mask[p1,p2] < 0):
                                 mask[p1,p2] = 0            
             if(c0y < img.shape[0]/2 and c0x > img.shape[1]/2 ):  #Quadrant 4 
                 d = min((c0y), (img.shape[1] -c0x))
-                r = random.randint(0 , d)
+                r = random.randint(0 , np.int(d/6))
                 for p1 in range(5, img.shape[0]-5):
                     for p2 in range(5, img.shape[1]-5):
                         if( ((p1-c0y)**2) + ((p2-c0x)**2) <= r**2 ):
-                            mask[p1,p2] -= random.randint(0,1) #+= R_float(start, stop, )
+                            mask[p1,p2] -= 1 #+= R_float(start, stop, )
                             if(mask[p1,p2] < 0):
                                 mask[p1,p2] = 0
     if (type == "CCG"): # Circles- Computer Generated mask.                     
