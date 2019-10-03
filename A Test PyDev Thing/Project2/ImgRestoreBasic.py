@@ -10,10 +10,11 @@ def restore(img, mask, relax): ##the basic method of restoring the image using t
                     
                     ##set initial guess
                     #rest[x+1,y+1] == 0.5 ##initial guess of half-intensity
+                    ##other initial guess option: nearest boundary value
                     d = 0
                     while(d != -1):
                         d += 1
-                        print('d = '+ numpy.str(d))
+                        #print('d = '+ numpy.str(d))
                         for xd in range(0, d):
                             for yd in range(0, d):
                                 if not( (x+xd) > img.shape[0]-1 or (y+yd) > img.shape[1]-1 or (x+xd) < 0 or (y+yd) < 0 or mask[x+xd,y+yd] == 0 ):
@@ -23,6 +24,7 @@ def restore(img, mask, relax): ##the basic method of restoring the image using t
                             else:
                                 continue
                             break
+                    ##other initial guess option end
                     
                     ##now set all possible boundary points, using for points outside of image the Neumann condition
                     xd = 1##boundary 1
@@ -66,7 +68,8 @@ def restore(img, mask, relax): ##the basic method of restoring the image using t
         if((numpy.abs(rest - restTemp)).max() < EPS):
             looping = False
         else:
-            print('Max delta = ' + numpy.str((numpy.abs(rest - restTemp)).max()))
+            pass
+            #print('Max delta = ' + numpy.str((numpy.abs(rest - restTemp)).max()))
     
     restoredPart = mask * 0##setting the in-boundary part of rest to be used
     for x in range(0, mask.shape[0]):

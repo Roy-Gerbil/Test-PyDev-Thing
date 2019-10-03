@@ -1,7 +1,4 @@
 import numpy
-import ApplyDiffusion
-import matplotlib.pyplot as plt
-from scipy.stats.morestats import levene
 
 def sortThird(val): ##returns the second value of the list, here the T value
     return val[1]
@@ -31,29 +28,29 @@ def initialize(I, mask): ##get initial values for Image
                         narrowBand.append(((x, y), Image[x, y, 0]))
     return (Image, narrowBand)
 
-def inpaint(I, f, T, i, j): ##inpaints the pixel at [i, j] using nearby points
+def inpaint(I, f, T, i, j ,d): ##inpaints the pixel at [i, j] using nearby points. d is the distance to grab points with information to use to inpaint
     Ia = 0
     s = 0
     gradI = numpy.array([0, 0])
-    d = 2 ##distance to grab points with information to use to inpaint
     for x in range(i-d, i+d+1):
         for y in range(j-d, j+d+1):
-            if(x == i and y == j):
-                pass
-            elif(f[x, y] == 1):
-                k = x
-                l = y
-                r = numpy.array((k-i, l-j))
-                lr = numpy.linalg.norm(r)
-                gradT = numpy.array([T[i+1, j] - T[i-1, j], T[i, j+1] - T[i, j-1]])/2
-                dirn = numpy.abs(numpy.dot(r, gradT)) / lr
-                dst = 1/(lr**2)
-                lev = 1/(1 + numpy.abs(T[k, l] - T[i, j]))
-                w = dirn*dst*lev + 1*10**-6 ##to avoid zeros
-                if(f[k+1, l] != 1 and f[k-1, l] != 1 and f[k, l+1] != 1 and f[k, l-1] != 1):
-                    gradI = numpy.array([I[k+1, l] - I[k-1, l], I[k, l+1] - I[k, l-1]])/2
-                Ia = Ia + w * (I[k, l] - numpy.dot(gradI, r))
-                s = s + w
+            if(x+1 < I.shape[0] and y+1 < I.shape[1] and x-1 >= 0 and y-1 >= 0):  
+                if(x == i and y == j):
+                    pass
+                elif(f[x, y] == 1):
+                    k = x
+                    l = y
+                    r = numpy.array((k-i, l-j))
+                    lr = numpy.linalg.norm(r)
+                    gradT = numpy.array([T[i+1, j] - T[i-1, j], T[i, j+1] - T[i, j-1]])/2
+                    dirn = numpy.abs(numpy.dot(r, gradT)) / lr
+                    dst = 1/(lr**2)
+                    lev = 1/(1 + numpy.abs(T[k, l] - T[i, j]))
+                    w = dirn*dst*lev + 1*10**-6 ##to avoid zeros
+                    if(f[k+1, l] != 1 and f[k-1, l] != 1 and f[k, l+1] != 1 and f[k, l-1] != 1):
+                        gradI = numpy.array([I[k+1, l] - I[k-1, l], I[k, l+1] - I[k, l-1]])/2
+                    Ia = Ia + w * (I[k, l] - numpy.dot(gradI, r))
+                    s = s + w
     Inew = Ia/s
     if(Inew < 0):
         Inew = 0
@@ -79,7 +76,7 @@ def solve(f, T, i1, j1, i2, j2):
         sol = 1 + T[i2, j2]
     return sol
 
-def restore(Io, mask): ##fast method of restoring the image, takes the image to restore and the mask that was applied
+def restore(Io, mask, d): ##fast method of restoring the image, takes the image to restore, the mask that was applied, and the distance to consider pixels from when inpainting
     
     ####NEW THING START
     (Image, narrowBand) = initialize(Io, mask)
@@ -92,7 +89,7 @@ def restore(Io, mask): ##fast method of restoring the image, takes the image to 
             I[x, y] = Image[x, y, 1]
             f[x, y] = Image[x, y, 2]
     while(len(narrowBand) != 0):
-        print('looping... bandSize = ' + numpy.str(len(narrowBand)))
+        #print('looping... bandSize = ' + numpy.str(len(narrowBand)))
         narrowBand.sort(key = sortThird)
         curr = narrowBand.pop(0)
         i = curr[0][0]
@@ -106,7 +103,7 @@ def restore(Io, mask): ##fast method of restoring the image, takes the image to 
         if(f[k, l] != 1):
             if(f[k, l] == 2):
                 f[k, l] = 0
-                I[k, l] = inpaint(I, f, T, k, l)
+                I[k, l] = inpaint(I, f, T, k, l, d)
             T[k, l] = numpy.min((solve(f, T, k-1, l, k, l-1), solve(f, T, k+1, l, k, l-1), solve(f, T, k-1, l, k, l+1), solve(f, T, k+1, l, k, l+1)))
             narrowBand = replaceT(narrowBand, k, l)
             narrowBand.append(((k, l), T[k, l]))
@@ -117,7 +114,7 @@ def restore(Io, mask): ##fast method of restoring the image, takes the image to 
         if(f[k, l] != 1):
             if(f[k, l] == 2):
                 f[k, l] = 0
-                I[k, l] = inpaint(I, f, T, k, l)
+                I[k, l] = inpaint(I, f, T, k, l, d)
             T[k, l] = numpy.min((solve(f, T, k-1, l, k, l-1), solve(f, T, k+1, l, k, l-1), solve(f, T, k-1, l, k, l+1), solve(f, T, k+1, l, k, l+1)))
             narrowBand = replaceT(narrowBand, k, l)
             narrowBand.append(((k, l), T[k, l]))
@@ -128,7 +125,7 @@ def restore(Io, mask): ##fast method of restoring the image, takes the image to 
         if(f[k, l] != 1):
             if(f[k, l] == 2):
                 f[k, l] = 0
-                I[k, l] = inpaint(I, f, T, k, l)
+                I[k, l] = inpaint(I, f, T, k, l, d)
             T[k, l] = numpy.min((solve(f, T, k-1, l, k, l-1), solve(f, T, k+1, l, k, l-1), solve(f, T, k-1, l, k, l+1), solve(f, T, k+1, l, k, l+1)))
             narrowBand = replaceT(narrowBand, k, l)
             narrowBand.append(((k, l), T[k, l]))
@@ -139,7 +136,7 @@ def restore(Io, mask): ##fast method of restoring the image, takes the image to 
         if(f[k, l] != 1):
             if(f[k, l] == 2):
                 f[k, l] = 0
-                I[k, l] = inpaint(I, f, T, k, l)
+                I[k, l] = inpaint(I, f, T, k, l, d)
             T[k, l] = numpy.min((solve(f, T, k-1, l, k, l-1), solve(f, T, k+1, l, k, l-1), solve(f, T, k-1, l, k, l+1), solve(f, T, k+1, l, k, l+1)))
             narrowBand = replaceT(narrowBand, k, l)
             narrowBand.append(((k, l), T[k, l]))
